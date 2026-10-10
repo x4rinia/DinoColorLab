@@ -118,13 +118,13 @@ export function calculateTeaspoonAmount(
     };
   }
 
-  // Bei Mengen unter 0,4 ml (wenige Tropfen bzw. Messerspitze)
-  if (ml < 0.4) {
+  // Bei Mengen unter 0.8 ml (weniger als ¼ TL: wenige Tropfen bzw. Messerspitze)
+  if (ml < 0.8) {
     return {
       canMeasureTeaspoon: false,
-      teaspoonDisplay: '< ⅛ TL (Tropfen/Spitze)',
-      fractionValue: 0.25,
-      diffMl: Math.round((0.25 - ml) * 1000) / 1000,
+      teaspoonDisplay: '< ¼ TL (wenige Tropfen)',
+      fractionValue: 0.5,
+      diffMl: Math.round((0.5 - ml) * 100) / 100,
       accuracyDescription: 'Sehr kleine Menge',
       isAccurate: false,
       recommendation: 'Nur wenige Tropfen bzw. eine Messerspitze hinzugeben (oder eine 1-ml-Dosierspritze nutzen).',
@@ -132,9 +132,9 @@ export function calculateTeaspoonAmount(
     };
   }
 
-  // Praktische, haushaltsübliche Löffelmaße:
-  // 1 TL (5 ml), ¾ TL (3,75 ml), ⅔ TL (3,33 ml), ½ TL (2,5 ml), ⅓ TL (1,67 ml), ¼ TL (1,25 ml), ⅛ TL (0,625 ml)
-  // Keine komplexen Brüche wie ⅜, ⅝ oder ⅞!
+  // Ausschließlich alltagstaugliche Löffelmaße:
+  // Nur 1 TL, ½ TL, ⅓ TL, ¼ TL (und Kombinationen wie ½ TL + ¼ TL)!
+  // Keine exotischen Brüche wie ⅔, ¾, ⅛, ⅜, ⅝ oder ⅞.
   const wholeTsp = Math.floor(ml / 5.0);
   const remainder = ml - wholeTsp * 5.0;
 
@@ -144,18 +144,16 @@ export function calculateTeaspoonAmount(
     isWholeNext?: boolean;
   }
 
-  const getSimpleFraction = (r: number): SpoonFraction => {
-    if (r < 0.3) return { text: '', ml: 0 };
-    if (r < 0.95) return { text: '⅛ TL', ml: 0.625 };
+  const getStrictSimpleFraction = (r: number): SpoonFraction => {
+    if (r < 0.5) return { text: '', ml: 0 };
     if (r < 1.45) return { text: '¼ TL', ml: 1.25 };
     if (r < 2.05) return { text: '⅓ TL', ml: 1.67 };
-    if (r < 2.90) return { text: '½ TL', ml: 2.50 };
-    if (r < 3.50) return { text: '⅔ TL', ml: 3.33 };
-    if (r < 4.40) return { text: '¾ TL', ml: 3.75 };
+    if (r < 3.10) return { text: '½ TL', ml: 2.50 };
+    if (r < 4.35) return { text: '½ TL + ¼ TL', ml: 3.75 };
     return { text: '1 TL', ml: 5.0, isWholeNext: true };
   };
 
-  const fraction = getSimpleFraction(remainder);
+  const fraction = getStrictSimpleFraction(remainder);
 
   let fractionText = '';
   let approxMl = 0;
@@ -179,12 +177,12 @@ export function calculateTeaspoonAmount(
 
   const diffMl = Math.round((ml - approxMl) * 100) / 100;
   const absDiff = Math.abs(diffMl);
-  const isAccurate = absDiff <= 0.25;
+  const isAccurate = absDiff <= 0.35;
 
   let accuracyDescription = 'Exakt passend';
-  if (absDiff > 0.05 && absDiff <= 0.4) {
+  if (absDiff > 0.05 && absDiff <= 0.5) {
     accuracyDescription = `Gute Näherung (${diffMl > 0 ? '+' : ''}${diffMl.toFixed(1)} ml)`;
-  } else if (absDiff > 0.4) {
+  } else if (absDiff > 0.5) {
     accuracyDescription = `Grobe Schätzung (${diffMl > 0 ? '+' : ''}${diffMl.toFixed(1)} ml)`;
   }
 

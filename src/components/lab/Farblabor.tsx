@@ -36,8 +36,8 @@ export const Farblabor: React.FC<FarblaborProps> = ({
   // Gewählter Nuancen-Stil: Pastell, Kräftig, Dunkel, Grau/Schwarz, Natürlich
   const [selectedStyle, setSelectedStyle] = useState<ColorStyleCategory>('kraeftig');
 
-  // Die Menge ist immer fest für eine Teststrähne (ca. 1 TL / 5 ml)
-  const totalBatchGrams = 5.0;
+  // Die Menge ist fest für eine gut anrührbare Teststrähne (mind. 10 ml / ca. 2 TL)
+  const totalBatchGrams = 10.0;
 
   // Der Spülungsanteil wird passend zum gewählten Farbton-Stil gesetzt
   const maxConditionerRatioPercent = useMemo(() => {
@@ -151,7 +151,7 @@ export const Farblabor: React.FC<FarblaborProps> = ({
             Haarfarben-Mischlabor für Direktzieher
           </h2>
           <p className="text-xs sm:text-sm text-slate-300 max-w-xl m-0">
-            Wähle deine <strong>Wunschfarbe</strong> und sieh sofort, wie sie sich mit deiner <strong>Ausgangshaarfarbe</strong> verbindet – inklusive Rezeptur rein in Löffelmaßen für eine Teststrähne.
+            Wähle deine <strong>Wunschfarbe</strong> und sieh sofort, wie sie sich mit deiner <strong>Ausgangshaarfarbe</strong> verbindet – inklusive Rezeptur in einfachen Löffelmaßen für eine Teststrähne (mind. 10 ml / ca. 2 TL zum optimalen Verrühren).
           </p>
         </div>
 

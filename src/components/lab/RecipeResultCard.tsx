@@ -75,7 +75,7 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
 
   const handleCopyText = async () => {
     const text = [
-      `🦕 Dino Color Lab – Rezeptkarte (Teststrähne: ca. 1 TL / 5 ml)`,
+      `🦕 Dino Color Lab – Rezeptkarte (Teststrähne: mind. 10 ml / ca. 2 TL)`,
       `Gemischte Farbe: ${mixedColorHex.toUpperCase()}`,
       ``,
       `Zutaten (Löffelmaße):`,
@@ -125,7 +125,7 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
               Mischrezeptur
             </span>
             <span className="text-xs text-slate-400">
-              Teststrähne (1 TL / ca. 5 ml)
+              Teststrähne (mind. 10 ml / ca. 2 TL)
             </span>
           </div>
           <h3 className="text-lg font-extrabold text-slate-100 m-0 mt-1">

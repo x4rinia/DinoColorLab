@@ -29,11 +29,16 @@ describe('Unit Conversions & Measurement Engine', () => {
     expect(res.isAccurate).toBe(true);
   });
 
-  it('correctly maps 0.625 ml to ⅛ TL', () => {
-    const res = calculateTeaspoonAmount(0.625, 0.625, 1.0);
+  it('correctly maps 1.67 ml to ⅓ TL', () => {
+    const res = calculateTeaspoonAmount(1.67, 1.67, 1.0);
     expect(res.canMeasureTeaspoon).toBe(true);
-    expect(res.teaspoonDisplay).toBe('⅛ TL');
-    expect(res.isAccurate).toBe(true);
+    expect(res.teaspoonDisplay).toBe('⅓ TL');
+  });
+
+  it('correctly maps 3.75 ml to ½ TL + ¼ TL', () => {
+    const res = calculateTeaspoonAmount(3.75, 3.75, 1.0);
+    expect(res.canMeasureTeaspoon).toBe(true);
+    expect(res.teaspoonDisplay).toBe('½ TL + ¼ TL');
   });
 
   it('correctly falls back to 1.0 g/ml when density is undefined', () => {
@@ -42,10 +47,10 @@ describe('Unit Conversions & Measurement Engine', () => {
     expect(res.teaspoonDisplay).toBe('½ TL');
   });
 
-  it('recommends drops or syringe for amounts below 0.625 ml (< ⅛ TL)', () => {
+  it('recommends drops or syringe for amounts below 0.8 ml (< ¼ TL)', () => {
     const res = calculateTeaspoonAmount(0.2, 0.2, 1.0);
     expect(res.canMeasureTeaspoon).toBe(false);
-    expect(res.teaspoonDisplay).toBe('< ⅛ TL (Tropfen/Spitze)');
+    expect(res.teaspoonDisplay).toBe('< ¼ TL (wenige Tropfen)');
     expect(res.recommendation).toContain('Dosierspritze');
   });
 
