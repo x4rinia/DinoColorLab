@@ -115,7 +115,7 @@ export function downloadRecipeAsPdf(
   doc.setTextColor(100, 116, 139);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8.5);
-  doc.text(`Portion: ca. ${recipe.totalBatchGrams || 5}g (Teststrähne ca. 1 TL / 5 ml)`, 48, y + 25);
+  doc.text(`Portion: ca. ${recipe.totalBatchGrams || 40}g / 40 ml (Färbeschale ca. 2 EL + 2 TL)`, 48, y + 25);
 
   // Base Hair Color preview on the right
   doc.setFillColor(baseHairRgb.r, baseHairRgb.g, baseHairRgb.b);
@@ -245,8 +245,8 @@ export function downloadRecipeAsPdf(
   doc.setTextColor(120, 53, 15);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
-  doc.text('• 1 TL = ca. 5 ml (Kaffeelöffel) | ½ TL = 2,5 ml | Spülung: 1 EL = 15 ml.', 18, y + 12);
-  doc.text('• Bei winzigen Mengen unter ⅛ TL: Nur eine Messerspitze mit dem Färbepinsel oder Tropfen hinzugeben.', 18, y + 17);
+  doc.text('• 1 EL = 15 ml | 1 TL = ca. 5 ml | Standardmenge Färbeschale: 40 ml (2 EL + 2 TL).', 18, y + 12);
+  doc.text('• Bei winzigen Mengen unter ¼ TL: Nur eine Messerspitze mit dem Färbepinsel oder Tropfen hinzugeben.', 18, y + 17);
   doc.text('• Direktzieher sind semi-transparent: Vorab immer eine Teststrähne an unauffälliger Haarpartie durchführen!', 18, y + 22);
 
   y += 36;

@@ -77,7 +77,7 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
 
   const handleCopyText = async () => {
     const text = [
-      `🦕 Dino Color Lab – Rezeptkarte (Teststrähne: mind. 10 ml / ca. 2 TL)`,
+      `🦕 Dino Color Lab – Rezeptkarte (Färbeschale: 40 ml)`,
       `Gemischte Farbe: ${mixedColorHex.toUpperCase()}`,
       ``,
       `Zutaten (Löffelmaße):`,
@@ -87,7 +87,7 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
       `• Weiße Spülung: ${condTsp.teaspoonDisplay} (${ingredients.conditionerPercent}%)`,
       ``,
       `Mischverhältnis: ${simpleRatio}`,
-      `Praxishinweis: 1 TL = 5 ml | 1 EL = 15 ml | Bei Kleinstmengen wenige Tropfen zugeben.`
+      `Praxishinweis: 1 EL = 15 ml | 1 TL = 5 ml | Gesamtmenge: 40 ml (ca. 2 EL + 2 TL).`
     ].join('\n');
 
     try {
@@ -125,7 +125,7 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
         magentaPigmentId: magentaPigment.id || 2,
         yellowPigmentId: yellowPigment.id || 3,
         conditionerId: conditioner?.id,
-        totalBatchGrams: 5,
+        totalBatchGrams: 40,
         ingredients,
         baseHairColor: { levelKey: 'bleached_level10', hex: '#fffbeb' },
         testStatus: 'untested',
@@ -151,7 +151,7 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
               Mischrezeptur
             </span>
             <span className="text-xs text-slate-400">
-              Teststrähne (mind. 10 ml / ca. 2 TL)
+              Färbeschale (40 ml / ca. 2 EL + 2 TL)
             </span>
           </div>
           <h3 className="text-lg font-extrabold text-slate-100 m-0 mt-1">
@@ -228,7 +228,7 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
             {mixedColorHex.toUpperCase()}
           </div>
           <div className="text-xs text-slate-400">
-            Rezeptur rein in Löffeln für die Testschale
+            Rezeptur in Löffelmaßen für die Färbeschale (40 ml)
           </div>
         </div>
       </div>
@@ -346,11 +346,11 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
       <div className="bg-slate-950/60 p-3 rounded-2xl border border-slate-800 text-xs text-slate-300 space-y-1">
         <div className="font-bold text-slate-200">🥄 Praktische Dosier-Hilfe:</div>
         <p className="m-0 text-slate-400">
-          • <strong>1 TL</strong> = 5 ml (gestrichener Kaffeelöffel) | <strong>½ TL</strong> = 2,5 ml
+          • <strong>1 EL</strong> = 15 ml (großer Esslöffel) | <strong>1 TL</strong> = 5 ml (Kaffeelöffel) | <strong>½ TL</strong> = 2,5 ml
           <br />
-          • Bei <strong>&lt; ⅛ TL</strong>: Nur wenige Tropfen oder eine Messerspitze mit dem Pinsel zugeben.
+          • Standard-Gesamtmenge im Schälchen: <strong>40 ml</strong> (entspricht genau 2 EL + 2 TL).
           <br />
-          • Spülung bei größeren Mengen: <strong>1 EL</strong> = 15 ml.
+          • Bei Kleinstmengen unter ¼ TL: Nur wenige Tropfen oder eine Messerspitze mit dem Pinsel zugeben.
         </p>
       </div>
     </div>

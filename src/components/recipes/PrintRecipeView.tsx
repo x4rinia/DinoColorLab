@@ -71,7 +71,7 @@ export const PrintRecipeView: React.FC<PrintRecipeViewProps> = ({
               <div className="text-xs font-bold uppercase tracking-wider text-blue-600">Dino Color Lab 🦕</div>
               <h1 className="text-2xl font-black text-slate-900 mt-1 m-0">{recipe.title}</h1>
               <div className="text-xs text-slate-500 mt-1">
-                Erstellt am: {new Date(recipe.createdAt).toLocaleDateString('de-DE')} • Portion: Teststrähne (ca. 1 TL / 5 ml)
+                Erstellt am: {new Date(recipe.createdAt).toLocaleDateString('de-DE')} • Portion: Färbeschale (40 ml / ca. 2 EL + 2 TL)
               </div>
             </div>
 
@@ -188,8 +188,8 @@ export const PrintRecipeView: React.FC<PrintRecipeViewProps> = ({
           {/* Praktische Dosier-Hinweise */}
           <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl text-xs text-slate-700 space-y-1">
             <div className="font-bold">🥄 Praxistipp zur Dosierung:</div>
-            <div>• 1 TL = 5 ml (Kaffeelöffel) | ½ TL = 2,5 ml | Spülung: 1 EL = 15 ml.</div>
-            <div>• Bei Mengen unter ⅛ TL: Wenige Tropfen oder eine Messerspitze mit dem Färbepinsel hinzugeben.</div>
+            <div>• 1 EL = 15 ml | 1 TL = 5 ml (Kaffeelöffel) | Gesamtmenge: 40 ml (2 EL + 2 TL).</div>
+            <div>• Bei Kleinstmengen unter ¼ TL: Wenige Tropfen oder eine Messerspitze mit dem Färbepinsel hinzugeben.</div>
             <div>• Direktzieher sind semi-transparent: Immer zuerst eine kleine Teststrähne an unauffälliger Stelle machen.</div>
           </div>
         </div>

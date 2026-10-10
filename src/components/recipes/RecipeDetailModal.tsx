@@ -131,7 +131,7 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
               </tr>
               <tr className="bg-slate-900 font-bold border-t border-slate-700 text-white">
                 <td className="p-3">Portion</td>
-                <td className="p-3 text-right font-semibold text-blue-300">Teststrähne (ca. 1 TL / 5 ml)</td>
+                <td className="p-3 text-right font-semibold text-blue-300">Färbeschale (40 ml / ca. 2 EL + 2 TL)</td>
                 <td className="p-3 text-right font-mono">100%</td>
               </tr>
             </tbody>

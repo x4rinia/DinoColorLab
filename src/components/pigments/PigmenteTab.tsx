@@ -157,8 +157,8 @@ export const PigmenteTab: React.FC<PigmenteTabProps> = () => {
             Eine einfache Plastik- oder Glasschale (kein Metall!) und ein Haarfärbepinsel.
           </div>
           <div className="bg-slate-950/50 p-3 rounded-2xl border border-slate-800">
-            <strong className="text-slate-200 block mb-1">🥄 Teelöffel</strong>
-            Ein normaler Kaffeelöffel (1 TL = ca. 5 ml) zum sparsamen Dosieren für deine Teststrähne.
+            <strong className="text-slate-200 block mb-1">🥄 Ess- & Teelöffel</strong>
+            Ein Esslöffel (1 EL = 15 ml) und Teelöffel (1 TL = 5 ml) zum bequemen Dosieren deiner 40-ml-Mischung.
           </div>
           <div className="bg-slate-950/50 p-3 rounded-2xl border border-slate-800">
             <strong className="text-slate-200 block mb-1">🧤 Handschuhe</strong>

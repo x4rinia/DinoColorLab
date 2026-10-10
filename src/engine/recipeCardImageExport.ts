@@ -57,7 +57,7 @@ export function downloadRecipeCardAsPng(data: RecipeCardExportData): void {
 
   ctx.fillStyle = '#94a3b8';
   ctx.font = '16px sans-serif';
-  ctx.fillText('Rezeptkarte für Teststrähne (1 TL / ca. 5 ml)', 50, 100);
+  ctx.fillText('Rezeptkarte für Färbeschale (40 ml / ca. 2 EL + 2 TL)', 50, 100);
 
   // Große Farb-Vorschau der gemischten Farbe
   const swatchY = 135;
@@ -216,7 +216,7 @@ export function downloadRecipeCardAsPng(data: RecipeCardExportData): void {
 
   ctx.fillStyle = '#94a3b8';
   ctx.font = '12px sans-serif';
-  ctx.fillText('• 1 TL entspricht ca. 5 ml | 1 EL entspricht ca. 15 ml | Bei Kleinstmengen wenige Tropfen hinzugeben.', 70, currentY + 48);
+  ctx.fillText('• 1 EL = ca. 15 ml | 1 TL = ca. 5 ml | Standardmenge Schale: 40 ml (2 EL + 2 TL).', 70, currentY + 48);
   ctx.fillText('• Vor der Gesamtanwendung immer eine Teststrähne durchführen, da die Haarfarbe durchscheint.', 70, currentY + 65);
 
   // Trigger Download
