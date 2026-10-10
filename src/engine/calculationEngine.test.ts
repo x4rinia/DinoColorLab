@@ -296,5 +296,24 @@ describe('Dino Color Lab Calculation Engine', () => {
       expect(blackResult.ingredients.conditionerGrams).toBe(0);
       expect(blackResult.ingredients.conditionerPercent).toBe(0);
     });
+
+    it('correctly includes Rot-Pink for teal shades like #1ddba3', () => {
+      const tealInput: CalculationInput = {
+        targetHex: '#1ddba3',
+        cyanPigmentId: 1,
+        magentaPigmentId: 2,
+        yellowPigmentId: 3,
+        totalBatchGrams: 40,
+        maxConditionerRatioPercent: 20,
+        baseHairColor: { levelKey: 'bleached_level10', hex: '#fffbeb' }
+      };
+      const result = calculateRecipe(tealInput, demoBlue, demoRedPink, demoYellow);
+      // Rot-Pink must be included because #1ddba3 absorbs green (m = 14%)
+      expect(result.ingredients.magentaGrams).toBeGreaterThan(0);
+      expect(result.ingredients.magentaPercent).toBeGreaterThan(5);
+      expect(result.ingredients.cyanPercent).toBeGreaterThan(40);
+      expect(result.ingredients.yellowPercent).toBeGreaterThan(15);
+      expect(result.ingredients.totalGrams).toBe(40);
+    });
   });
 });

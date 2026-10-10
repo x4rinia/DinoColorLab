@@ -86,19 +86,23 @@ export function calculateRecipe(
   const delta = maxVal - minVal;
   const sat = maxVal > 0 ? delta / maxVal : 0;
 
-  const chromaC = maxVal - normR;
-  const chromaM = maxVal - normG;
-  const chromaY = maxVal - normB;
-  const chromaSum = chromaC + chromaM + chromaY;
+  // Subtraktive Pigment-Absorption für Direktzieher:
+  // Blau (Cyan) absorbiert Rot: (1 - normR)
+  // Rot-Pink (Magenta) absorbiert Grün: (1 - normG)
+  // Gelb (Yellow) absorbiert Blau: (1 - normB)
+  const pigmentC = Math.max(0, 1 - normR);
+  const pigmentM = Math.max(0, 1 - normG);
+  const pigmentY = Math.max(0, 1 - normB);
+  const pigmentSum = pigmentC + pigmentM + pigmentY;
 
   let cRatio = 0;
   let mRatio = 0;
   let yRatio = 0;
 
-  if (chromaSum > 0) {
-    cRatio = chromaC / chromaSum;
-    mRatio = chromaM / chromaSum;
-    yRatio = chromaY / chromaSum;
+  if (pigmentSum > 0) {
+    cRatio = pigmentC / pigmentSum;
+    mRatio = pigmentM / pigmentSum;
+    yRatio = pigmentY / pigmentSum;
   }
 
   // Für sehr ungesättigte Töne (Grau, Schwarz, Erdtöne)
