@@ -45,8 +45,11 @@ export const BaseHairSelector: React.FC<BaseHairSelectorProps> = ({ value, onCha
             >
               <div className="flex items-center justify-between gap-2 mb-2">
                 <span
-                  className="w-5 h-5 rounded-full border border-white/20 shrink-0 shadow-sm"
-                  style={{ backgroundColor: option.hex }}
+                  className="w-6 h-6 rounded-full border border-white/30 shrink-0 shadow-inner relative overflow-hidden ring-1 ring-black/40"
+                  style={{
+                    backgroundColor: option.hex,
+                    backgroundImage: 'linear-gradient(135deg, rgba(255,255,255,0.22) 0%, rgba(0,0,0,0.18) 100%)'
+                  }}
                 />
                 {isSelected && <span className="text-[10px] font-extrabold text-cyan-400 uppercase">Aktiv</span>}
               </div>

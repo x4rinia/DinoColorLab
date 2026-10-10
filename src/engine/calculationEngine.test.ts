@@ -409,7 +409,7 @@ describe('Dino Color Lab Calculation Engine', () => {
         yellowPigmentId: 3,
         totalBatchGrams: 40,
         maxConditionerRatioPercent: 100,
-        baseHairColor: { levelKey: 'dark_blonde_level6', hex: '#876743' }
+        baseHairColor: { levelKey: 'dark_blonde_level6', hex: '#7c6349' }
       };
       const result = calculateRecipe(blackInput, demoBlue, demoRedPink, demoYellow);
       expect(result.estimatedResultHex).toBeDefined();
@@ -421,13 +421,13 @@ describe('Dino Color Lab Calculation Engine', () => {
     });
 
     it('defines realistic natural hair colors without neon yellow or carrot orange', () => {
-      expect(BASE_HAIR_COLORS.medium_blonde_level8.hex).toBe('#cca970');
-      expect(BASE_HAIR_COLORS.dark_blonde_level6.hex).toBe('#876743');
-      expect(BASE_HAIR_COLORS.light_brown_level5.hex).toBe('#563b23');
-      expect(BASE_HAIR_COLORS.dark_brown_level4.hex).toBe('#2c1b10');
+      expect(BASE_HAIR_COLORS.medium_blonde_level8.hex).toBe('#bfa071');
+      expect(BASE_HAIR_COLORS.dark_blonde_level6.hex).toBe('#7c6349');
+      expect(BASE_HAIR_COLORS.light_brown_level5.hex).toBe('#533b27');
+      expect(BASE_HAIR_COLORS.dark_brown_level4.hex).toBe('#2b1d14');
 
-      const pureCondResult = calculateResultOnHair('#ffffff', '#876743', 1.0);
-      expect(pureCondResult).toBe('#876743');
+      const pureCondResult = calculateResultOnHair('#ffffff', '#7c6349', 1.0);
+      expect(pureCondResult).toBe('#7c6349');
     });
   });
 });

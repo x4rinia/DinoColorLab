@@ -25,51 +25,51 @@ export const BASE_HAIR_COLORS: Record<string, BaseHairColorDefinition> = {
   bleached_level10: {
     key: 'bleached_level10',
     name: 'Sehr hell blondiert (Stufe 10-11)',
-    hex: '#faf5e8',
+    hex: '#f5f0e1',
     lightness: 96,
     warmth: 0.05
   },
   light_blonde_level9: {
     key: 'light_blonde_level9',
     name: 'Hellblond (Stufe 9)',
-    hex: '#f2e0b5',
+    hex: '#e7d3aa',
     lightness: 88,
     warmth: 0.20
   },
   medium_blonde_level8: {
     key: 'medium_blonde_level8',
     name: 'Mittelblond (Stufe 7-8)',
-    hex: '#cca970',
+    hex: '#bfa071',
     lightness: 76,
-    warmth: 0.40
+    warmth: 0.35
   },
   dark_blonde_level6: {
     key: 'dark_blonde_level6',
     name: 'Dunkelblond (Stufe 6)',
-    hex: '#876743',
+    hex: '#7c6349',
     lightness: 60,
-    warmth: 0.55
+    warmth: 0.50
   },
   light_brown_level5: {
     key: 'light_brown_level5',
     name: 'Hellbraun (Stufe 5)',
-    hex: '#563b23',
+    hex: '#533b27',
     lightness: 45,
-    warmth: 0.70
+    warmth: 0.65
   },
   dark_brown_level4: {
     key: 'dark_brown_level4',
     name: 'Dunkelbraun (Stufe 4)',
-    hex: '#2c1b10',
+    hex: '#2b1d14',
     lightness: 30,
-    warmth: 0.85
+    warmth: 0.80
   },
   already_dyed: {
     key: 'already_dyed',
     name: 'Bereits gefärbt',
-    hex: '#9c9387',
+    hex: '#8e8276',
     lightness: 70,
-    warmth: 0.30
+    warmth: 0.25
   }
 };
 
