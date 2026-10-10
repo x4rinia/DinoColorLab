@@ -171,11 +171,13 @@ export function mixPigmentsSubtractive(
 }
 
 /**
- * Berechnet das realistische Farbergebnis einer Haarfarbe auf der Ausgangshaarbasis.
- * Direktzieher legen sich lasierend um das Haar (subtraktive Pigmentwirkung).
- * Je geringer der Spülungsanteil (höhere Pigmentdichte), desto deckender das Farbergebnis.
- * Reine Spülung (100%) verändert die Haarfarbe nicht.
- * Tiefschwarz / Dunkeltöne decken auch dunkleres Haar zuverlässig ab.
+ * Berechnet das realistische subtraktive Farbergebnis einer Haarfarbe auf der Ausgangshaarbasis.
+ * Direktzieher legen sich lasierend wie ein transparenter Farbfilter (Cellophan-Folie) um die Haarfaser.
+ * Physikalisches Prinzip (Beer-Lambert-Gesetz):
+ * - Licht tritt durch die Pigmentschicht ein, wird am Haarkeratin/Melanin reflektiert und gefiltert zurückgeworfen.
+ * - Je geringer der Spülungsanteil (höhere Pigmentdichte), desto stärker die Lichtabsorption.
+ * - Bei 100% Spülung (0% Farbpigment) bleibt die Haarfarbe unverändert.
+ * - Direktzieher hellen dunkles Haar niemals auf (subtraktive Farbtheorie).
  */
 export function calculateResultOnHair(
   dyeHex: string,
@@ -188,35 +190,33 @@ export function calculateResultOnHair(
   const cond = Math.max(0, Math.min(1.0, conditionerRatio));
   const pigmentLoad = 1 - cond;
 
-  // Deckkraft / Opazität der Pigmentschicht:
-  // Bei 0% Spülung (Tiefschwarz etc.) deckt der Direktzieher ca. 96-98% ab.
-  // Bei 85% Spülung (Pastell) liegt die Deckkraft bei ca. 15-20%.
-  // Bei 100% Spülung liegt die Deckkraft bei 0%.
-  const dyeCoverage = pigmentLoad <= 0.001 ? 0 : Math.min(0.97, Math.pow(pigmentLoad, 0.7) * 0.97);
-
-  // Subtraktive Filterwirkung: Die Pigmentschicht filtert das vom Haar reflektierte Licht
-  const transR = dyeRgb.r / 255;
-  const transG = dyeRgb.g / 255;
-  const transB = dyeRgb.b / 255;
-
-  const filteredR = hairRgb.r * transR;
-  const filteredG = hairRgb.g * transG;
-  const filteredB = hairRgb.b * transB;
-
-  // Reales Farbergebnis: Mischung aus Pigment-Eigenfarbe (deckend) und gefiltertem Haarreflex
-  let outR = Math.round(dyeRgb.r * dyeCoverage + filteredR * (1 - dyeCoverage));
-  let outG = Math.round(dyeRgb.g * dyeCoverage + filteredG * (1 - dyeCoverage));
-  let outB = Math.round(dyeRgb.b * dyeCoverage + filteredB * (1 - dyeCoverage));
-
-  // Physikalische Grundregel: Direktzieher hellen NIEMALS auf!
-  const hairBrightness = (hairRgb.r + hairRgb.g + hairRgb.b) / 3;
-  const outBrightness = (outR + outG + outB) / 3;
-  if (outBrightness > hairBrightness + 5 && hairBrightness < 220) {
-    const scale = hairBrightness / outBrightness;
-    outR = Math.round(outR * scale);
-    outG = Math.round(outG * scale);
-    outB = Math.round(outB * scale);
+  // Wenn 100% Spülung (kein Farbpigment), bleibt das Haar exakt in seiner Ausgangsfarbe
+  if (pigmentLoad <= 0.005) {
+    return rgbToHex(hairRgb.r, hairRgb.g, hairRgb.b);
   }
+
+  // Normierte Transmission der Farbpigmente (0.0 bis 1.0)
+  const normDyeR = dyeRgb.r / 255;
+  const normDyeG = dyeRgb.g / 255;
+  const normDyeB = dyeRgb.b / 255;
+
+  // Subtraktive Absorption nach Beer-Lambert (Doppel-Passage durch die Pigmentschicht auf dem Haar)
+  // Exponent steigt mit der Pigmentdichte
+  const optDensity = Math.pow(pigmentLoad, 0.8) * 1.6;
+
+  const transR = Math.pow(normDyeR, optDensity);
+  const transG = Math.pow(normDyeG, optDensity);
+  const transB = Math.pow(normDyeB, optDensity);
+
+  // Gefiltertes Licht, das vom Haaruntergrund reflektiert wird
+  let outR = Math.round(hairRgb.r * transR);
+  let outG = Math.round(hairRgb.g * transG);
+  let outB = Math.round(hairRgb.b * transB);
+
+  // Garantiertes physikalisches Gesetz: Direktzieher hellen NIEMALS auf!
+  outR = Math.min(hairRgb.r, Math.max(0, outR));
+  outG = Math.min(hairRgb.g, Math.max(0, outG));
+  outB = Math.min(hairRgb.b, Math.max(0, outB));
 
   return rgbToHex(outR, outG, outB);
 }

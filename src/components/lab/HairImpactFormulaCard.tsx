@@ -190,13 +190,37 @@ export const HairImpactFormulaCard: React.FC<HairImpactFormulaCardProps> = ({
 
           {/* 3. Ergebnis auf Haar */}
           <div className="flex-1 space-y-1">
-            <span className="text-[11px] font-bold text-emerald-400 block">Ergebnis</span>
+            <span
+              className={`text-[11px] font-bold block ${
+                evaluation.status === 'success'
+                  ? 'text-emerald-400'
+                  : evaluation.status === 'warning'
+                  ? 'text-amber-400'
+                  : 'text-rose-400'
+              }`}
+            >
+              Ergebnis
+            </span>
             <div
-              className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl border-2 border-emerald-400/50 shadow-lg mx-auto transition-transform hover:scale-105"
+              className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl border-2 shadow-lg mx-auto transition-transform hover:scale-105 ${
+                evaluation.status === 'success'
+                  ? 'border-emerald-400/50'
+                  : evaluation.status === 'warning'
+                  ? 'border-amber-400/50'
+                  : 'border-rose-400/50'
+              }`}
               style={{ backgroundColor: resultOnHair }}
               title={`Ergebnis auf dem Haar: ${resultOnHair}`}
             />
-            <span className="text-[10px] font-mono font-bold text-emerald-300 block">
+            <span
+              className={`text-[10px] font-mono font-bold block ${
+                evaluation.status === 'success'
+                  ? 'text-emerald-300'
+                  : evaluation.status === 'warning'
+                  ? 'text-amber-300'
+                  : 'text-rose-300'
+              }`}
+            >
               {resultOnHair.toUpperCase()}
             </span>
           </div>
