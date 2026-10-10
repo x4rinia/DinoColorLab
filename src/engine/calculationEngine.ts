@@ -33,7 +33,7 @@ export function calculateRecipe(
   const precision = options.roundingPrecision ?? 0.1;
   const targetHex = normalizeHex(input.targetHex);
   const totalGrams = Math.max(1, input.totalBatchGrams);
-  const maxConditionerRatio = Math.max(0, Math.min(0.95, input.maxConditionerRatioPercent / 100));
+  const maxConditionerRatio = Math.max(0, Math.min(1.0, input.maxConditionerRatioPercent / 100));
 
   const matchingTests = strandTests.filter(
     (st) =>
@@ -81,66 +81,50 @@ export function calculateRecipe(
   const normG = targetRgb.g / 255;
   const normB = targetRgb.b / 255;
 
-  const maxVal = Math.max(normR, normG, normB);
-  const minVal = Math.min(normR, normG, normB);
-  const delta = maxVal - minVal;
-  const sat = maxVal > 0 ? delta / maxVal : 0;
-
-  // Subtraktive Pigment-Absorption für Direktzieher:
+  // Subtraktive Pigment-Absorption für Direktzieher (CMY):
   // Blau (Cyan) absorbiert Rot: (1 - normR)
   // Rot-Pink (Magenta) absorbiert Grün: (1 - normG)
   // Gelb (Yellow) absorbiert Blau: (1 - normB)
   const pigmentC = Math.max(0, 1 - normR);
   const pigmentM = Math.max(0, 1 - normG);
   const pigmentY = Math.max(0, 1 - normB);
-  const pigmentSum = pigmentC + pigmentM + pigmentY;
-  const maxPigmentReq = Math.max(pigmentC, pigmentM, pigmentY);
 
-  let cRatio = 0;
-  let mRatio = 0;
-  let yRatio = 0;
+  // Exakte Synchronisation mit den Farbreglern (Ganze Prozentpunkte 0–100%):
+  // Wenn der Farbregler 0% anzeigt (oder < 0.5%), ist der Zutat-Anteil STRIKT 0%!
+  const pctC = Math.round(pigmentC * 100);
+  const pctM = Math.round(pigmentM * 100);
+  const pctY = Math.round(pigmentY * 100);
 
-  // Nur wenn echte Pigmente benötigt werden (nicht bei Weiß):
-  if (maxPigmentReq > 0.015 && pigmentSum > 0.01) {
-    cRatio = pigmentC / pigmentSum;
-    mRatio = pigmentM / pigmentSum;
-    yRatio = pigmentY / pigmentSum;
+  const pC = pctC === 0 ? 0 : pctC / 100;
+  const pM = pctM === 0 ? 0 : pctM / 100;
+  const pY = pctY === 0 ? 0 : pctY / 100;
 
-    // Für ungesättigte Töne (Grau, Schwarz, Erdtöne), NIEMALS für Weiß!
-    if (sat < 0.25) {
-      const neutralWeight = (0.25 - sat) / 0.25;
-      cRatio = cRatio * (1 - neutralWeight) + 0.38 * neutralWeight;
-      mRatio = mRatio * (1 - neutralWeight) + 0.34 * neutralWeight;
-      yRatio = yRatio * (1 - neutralWeight) + 0.28 * neutralWeight;
-    }
-  }
-
-  let rawC = cRatio * gainC;
-  let rawM = mRatio * gainM;
-  let rawY = yRatio * gainY;
-
-  const rawPigmentSum = rawC + rawM + rawY;
+  const pigmentSum = pC + pM + pY;
 
   let calcConditionerRatio = 0;
 
   if (maxConditionerRatio === 0) {
     calcConditionerRatio = 0;
   }
-  // 1. Reines Weiß / sehr helle Basen (maxPigmentReq < 0.015): 100% reine Spülung!
-  else if (maxPigmentReq < 0.015) {
+  // 1. Reines Weiß / keine Pigmente (pctSum === 0): 100% reine Spülung!
+  else if (pigmentSum === 0) {
     calcConditionerRatio = 1.0;
   }
   // 2. Tiefes Schwarz: 100% Pigmentdichte, keine Spülung
   else if (targetBrightness < 0.16 || (targetRgb.r < 30 && targetRgb.g < 30 && targetRgb.b < 30)) {
     calcConditionerRatio = 0;
   }
-  // 3. Alle Nuancen dazwischen: Helligkeit steuert direkt und stufenlos den Spülungsanteil!
+  // 3. Pastell, mittlere und kräftige Nuancen:
   else {
-    // Je heller die Zielfarbe (kleineres maxPigmentReq), desto mehr Spülung
-    const naturalConditioner = Math.max(0, 1 - maxPigmentReq);
-    // Bei voller Sättigung (maxPigmentReq nahe 1.0) bleibt ein kleiner Streckanteil von ca. 10%
-    const baseStretch = 0.10;
-    calcConditionerRatio = Math.max(baseStretch, naturalConditioner);
+    if (pigmentSum <= 0.90) {
+      // Pastelltöne & helle Nuancen: Spülung macht exakt den Rest bis 100% aus
+      calcConditionerRatio = Math.max(0, 1 - pigmentSum);
+    } else {
+      // Kräftige / vollgesättigte Farben: ca. 10% Streckanteil Spülung
+      const baseStretch = 0.10;
+      calcConditionerRatio = baseStretch;
+    }
+    calcConditionerRatio = Math.min(calcConditionerRatio, maxConditionerRatio);
   }
 
   const pigmentMassFraction = 1 - calcConditionerRatio;
@@ -149,10 +133,31 @@ export function calculateRecipe(
   let mFrac = 0;
   let yFrac = 0;
 
-  if (rawPigmentSum > 0) {
-    cFrac = (rawC / rawPigmentSum) * pigmentMassFraction;
-    mFrac = (rawM / rawPigmentSum) * pigmentMassFraction;
-    yFrac = (rawY / rawPigmentSum) * pigmentMassFraction;
+  if (pigmentSum > 0) {
+    if (pigmentSum <= 0.90 && calcConditionerRatio === (1 - pigmentSum)) {
+      // Direkte 1:1 Übereinstimmung mit den Farbregler-Prozenten
+      cFrac = pC;
+      mFrac = pM;
+      yFrac = pY;
+    } else {
+      // Proportionale Skalierung auf die verfügbare Pigmentmasse
+      cFrac = (pC / pigmentSum) * pigmentMassFraction;
+      mFrac = (pM / pigmentSum) * pigmentMassFraction;
+      yFrac = (pY / pigmentSum) * pigmentMassFraction;
+    }
+
+    // Falls kalibrierte Pigment-Intensitäten vorliegen:
+    if (mode === 'calibrated') {
+      const rawC = cFrac * gainC;
+      const rawM = mFrac * gainM;
+      const rawY = yFrac * gainY;
+      const rawSum = rawC + rawM + rawY;
+      if (rawSum > 0) {
+        cFrac = (rawC / rawSum) * pigmentMassFraction;
+        mFrac = (rawM / rawSum) * pigmentMassFraction;
+        yFrac = (rawY / rawSum) * pigmentMassFraction;
+      }
+    }
   }
 
   const condFrac = calcConditionerRatio;
@@ -162,35 +167,44 @@ export function calculateRecipe(
   let rawYelG = yFrac * totalGrams;
   let rawCondG = condFrac * totalGrams;
 
-  const roundVal = (val: number) => Math.round(val / precision) * precision;
+  const roundVal = (val: number) => Math.round((Math.round(val / precision) * precision) * 1000) / 1000;
 
   let cyanG = roundVal(rawCyanG);
   let magG = roundVal(rawMagG);
   let yelG = roundVal(rawYelG);
   let condG = roundVal(rawCondG);
 
-  let currentSum = roundVal(cyanG + magG + yelG + condG);
-  const diff = roundVal(totalGrams - currentSum);
+  // Strikte 0-Garantie: Wenn Regler 0% ist, sind die Gramm zwingend 0.0g!
+  if (pC === 0) cyanG = 0;
+  if (pM === 0) magG = 0;
+  if (pY === 0) yelG = 0;
+  if (calcConditionerRatio === 0) condG = 0;
 
-  if (Math.abs(diff) > 0.001) {
-    const amounts = [
-      { key: 'cond', val: condG },
-      { key: 'cyan', val: cyanG },
-      { key: 'mag', val: magG },
-      { key: 'yel', val: yelG }
-    ];
-    amounts.sort((a, b) => b.val - a.val);
-
-    if (amounts[0].key === 'cond') condG = roundVal(condG + diff);
-    else if (amounts[0].key === 'cyan') cyanG = roundVal(cyanG + diff);
-    else if (amounts[0].key === 'mag') magG = roundVal(magG + diff);
-    else if (amounts[0].key === 'yel') yelG = roundVal(yelG + diff);
+  // Ausgleich für Rundungsdifferenzen (stets auf Spülung oder das größte aktive Pigment):
+  if (condG > 0) {
+    condG = roundVal(totalGrams - (cyanG + magG + yelG));
+  } else {
+    const diff = roundVal(totalGrams - (cyanG + magG + yelG));
+    if (Math.abs(diff) > 0.001) {
+      const activePigments = [
+        { key: 'cyan', val: cyanG },
+        { key: 'mag', val: magG },
+        { key: 'yel', val: yelG }
+      ].filter((p) => p.val > 0);
+      if (activePigments.length > 0) {
+        activePigments.sort((a, b) => b.val - a.val);
+        const biggest = activePigments[0].key;
+        if (biggest === 'cyan') cyanG = roundVal(cyanG + diff);
+        else if (biggest === 'mag') magG = roundVal(magG + diff);
+        else if (biggest === 'yel') yelG = roundVal(yelG + diff);
+      }
+    }
   }
 
-  const cyanPercent = Math.round((cyanG / totalGrams) * 100 * 10) / 10;
-  const magentaPercent = Math.round((magG / totalGrams) * 100 * 10) / 10;
-  const yellowPercent = Math.round((yelG / totalGrams) * 100 * 10) / 10;
-  const conditionerPercent = Math.round((condG / totalGrams) * 100 * 10) / 10;
+  const cyanPercent = totalGrams > 0 ? Math.round((cyanG / totalGrams) * 100 * 10) / 10 : 0;
+  const magentaPercent = totalGrams > 0 ? Math.round((magG / totalGrams) * 100 * 10) / 10 : 0;
+  const yellowPercent = totalGrams > 0 ? Math.round((yelG / totalGrams) * 100 * 10) / 10 : 0;
+  const conditionerPercent = totalGrams > 0 ? Math.round((condG / totalGrams) * 100 * 10) / 10 : 0;
 
   const cyanMl = cyanPigment.densityGPerMl ? Math.round((cyanG / cyanPigment.densityGPerMl) * 100) / 100 : undefined;
   const magentaMl = magentaPigment.densityGPerMl ? Math.round((magG / magentaPigment.densityGPerMl) * 100) / 100 : undefined;

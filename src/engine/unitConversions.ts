@@ -57,7 +57,7 @@ export function calculateTeaspoonAmount(
   if (ml <= 0.001) {
     return {
       canMeasureTeaspoon: false,
-      teaspoonDisplay: '0',
+      teaspoonDisplay: '–',
       fractionValue: 0,
       diffMl: 0,
       accuracyDescription: 'Keine Zugabe',

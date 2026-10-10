@@ -334,5 +334,71 @@ describe('Dino Color Lab Calculation Engine', () => {
       expect(result.ingredients.yellowGrams).toBe(0);
       expect(result.ingredients.totalGrams).toBe(40);
     });
+
+    it('strictly excludes Blau and Rot for pale yellow #ffffd8 (Gelb: 15%, Blau: 0%, Rot: 0%)', () => {
+      const yellowInput: CalculationInput = {
+        targetHex: '#ffffd8',
+        cyanPigmentId: 1,
+        magentaPigmentId: 2,
+        yellowPigmentId: 3,
+        totalBatchGrams: 40,
+        maxConditionerRatioPercent: 100,
+        baseHairColor: { levelKey: 'bleached_level10', hex: '#ffffff' }
+      };
+      const result = calculateRecipe(yellowInput, demoBlue, demoRedPink, demoYellow);
+      expect(result.ingredients.cyanGrams).toBe(0);
+      expect(result.ingredients.cyanPercent).toBe(0);
+      expect(result.ingredients.magentaGrams).toBe(0);
+      expect(result.ingredients.magentaPercent).toBe(0);
+      expect(result.ingredients.yellowPercent).toBe(15);
+      expect(result.ingredients.yellowGrams).toBe(6.0);
+      expect(result.ingredients.conditionerPercent).toBe(85);
+      expect(result.ingredients.conditionerGrams).toBe(34.0);
+      expect(result.ingredients.totalGrams).toBe(40);
+    });
+
+    it('strictly excludes Blau and Gelb for pale pink #ffe8ff (Rot: 9%, Gelb: 0%, Blau: 0%)', () => {
+      const pinkInput: CalculationInput = {
+        targetHex: '#ffe8ff',
+        cyanPigmentId: 1,
+        magentaPigmentId: 2,
+        yellowPigmentId: 3,
+        totalBatchGrams: 40,
+        maxConditionerRatioPercent: 100,
+        baseHairColor: { levelKey: 'bleached_level10', hex: '#ffffff' }
+      };
+      const result = calculateRecipe(pinkInput, demoBlue, demoRedPink, demoYellow);
+      expect(result.ingredients.cyanGrams).toBe(0);
+      expect(result.ingredients.cyanPercent).toBe(0);
+      expect(result.ingredients.yellowGrams).toBe(0);
+      expect(result.ingredients.yellowPercent).toBe(0);
+      expect(result.ingredients.magentaPercent).toBe(9);
+      expect(result.ingredients.magentaGrams).toBe(3.6);
+      expect(result.ingredients.conditionerPercent).toBe(91);
+      expect(result.ingredients.conditionerGrams).toBe(36.4);
+      expect(result.ingredients.totalGrams).toBe(40);
+    });
+
+    it('strictly excludes Rot and Gelb for icy blue #f7ffff (Blau: 3%, Rot: 0%, Gelb: 0%)', () => {
+      const blueInput: CalculationInput = {
+        targetHex: '#f7ffff',
+        cyanPigmentId: 1,
+        magentaPigmentId: 2,
+        yellowPigmentId: 3,
+        totalBatchGrams: 40,
+        maxConditionerRatioPercent: 100,
+        baseHairColor: { levelKey: 'bleached_level10', hex: '#ffffff' }
+      };
+      const result = calculateRecipe(blueInput, demoBlue, demoRedPink, demoYellow);
+      expect(result.ingredients.magentaGrams).toBe(0);
+      expect(result.ingredients.magentaPercent).toBe(0);
+      expect(result.ingredients.yellowGrams).toBe(0);
+      expect(result.ingredients.yellowPercent).toBe(0);
+      expect(result.ingredients.cyanPercent).toBe(3);
+      expect(result.ingredients.cyanGrams).toBe(1.2);
+      expect(result.ingredients.conditionerPercent).toBe(97);
+      expect(result.ingredients.conditionerGrams).toBe(38.8);
+      expect(result.ingredients.totalGrams).toBe(40);
+    });
   });
 });
