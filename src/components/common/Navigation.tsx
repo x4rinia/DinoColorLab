@@ -17,13 +17,13 @@ export const Navigation: React.FC<NavigationProps> = ({
 }) => {
   const tabs = [
     { id: 'farblabor' as TabType, label: 'Farblabor', icon: FlaskConical, badge: null },
-    { id: 'pigmente' as TabType, label: 'Pigmente & Spülung (Einkauf)', icon: Palette, badge: null },
+    { id: 'pigmente' as TabType, label: 'Farben', icon: Palette, badge: null },
     { id: 'rezepte' as TabType, label: 'Meine Rezepte', icon: BookOpen, badge: recipeCount > 0 ? recipeCount : null }
   ];
 
   return (
-    <nav className="w-full bg-slate-900/90 border-b border-slate-800 text-slate-300 overflow-x-auto scrollbar-none sticky top-[57px] z-30">
-      <div className="max-w-7xl mx-auto flex items-center justify-start md:justify-center gap-2 sm:gap-4 px-2 sm:px-4 py-2 min-w-max">
+    <nav className="w-full bg-slate-900/90 border-b border-slate-800 text-slate-300 sticky top-[57px] z-30">
+      <div className="max-w-7xl mx-auto flex items-center justify-around sm:justify-center gap-1.5 sm:gap-4 px-2 sm:px-4 py-2">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -31,7 +31,7 @@ export const Navigation: React.FC<NavigationProps> = ({
             <button
               key={tab.id}
               onClick={() => onSelectTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-2xl font-semibold text-xs sm:text-sm transition-all whitespace-nowrap ${
+              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-2xl font-semibold text-xs sm:text-sm transition-all whitespace-nowrap ${
                 isActive
                   ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 border border-blue-400'
                   : 'hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-transparent'

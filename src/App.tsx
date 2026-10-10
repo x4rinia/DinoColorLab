@@ -10,7 +10,6 @@ import {
 } from './db/seedData';
 import { Header } from './components/common/Header';
 import { Navigation, type TabType } from './components/common/Navigation';
-import { SafetyBanner } from './components/common/SafetyBanner';
 import { Farblabor } from './components/lab/Farblabor';
 import { PigmenteTab } from './components/pigments/PigmenteTab';
 import { RezepteTab } from './components/recipes/RezepteTab';
@@ -98,8 +97,6 @@ export function App() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans transition-colors duration-300 selection:bg-cyan-500 selection:text-slate-950">
-      <SafetyBanner />
-
       <Header
         settings={localSettings}
         onUpdateSettings={handleUpdateSettings}
@@ -151,7 +148,9 @@ export function App() {
           <div>
             <strong>Dino Color Lab 🦕</strong> — Entwickelt für direkte, nichtoxidative Haarfarben.
           </div>
-          <div>Alle Berechnungen & Daten lokal im Browser gespeichert (IndexedDB).</div>
+          <div className="text-slate-400 font-medium">
+            by X4rinia und Dino 🦕
+          </div>
         </div>
       </footer>
 

@@ -1,29 +1,23 @@
 import React from 'react';
 import { DinoMascot } from './DinoMascot';
-import { Sun, Moon, Download } from 'lucide-react';
+import { Download } from 'lucide-react';
 import type { AppSettings } from '../../types';
 
 interface HeaderProps {
-  settings: AppSettings;
-  onUpdateSettings: (newSettings: Partial<AppSettings>) => void;
+  settings?: AppSettings;
+  onUpdateSettings?: (newSettings: Partial<AppSettings>) => void;
   deferredInstallPrompt?: any;
   onInstallPwa?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
-  settings,
-  onUpdateSettings,
   deferredInstallPrompt,
   onInstallPwa
 }) => {
-  const toggleTheme = () => {
-    onUpdateSettings({ theme: settings.theme === 'dark' ? 'light' : 'dark' });
-  };
-
   return (
-    <header className="sticky top-0 z-40 bg-slate-900/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-800 text-white px-4 py-3">
+    <header className="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 text-white px-4 py-3">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3 cursor-pointer">
+        <div className="flex items-center gap-3">
           <DinoMascot size="sm" expression="happy" />
           <div>
             <div className="flex items-center gap-2">
@@ -40,8 +34,8 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3">
-          {deferredInstallPrompt && (
+        {deferredInstallPrompt && (
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={onInstallPwa}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-md shadow-cyan-500/20 transition-all"
@@ -50,21 +44,8 @@ export const Header: React.FC<HeaderProps> = ({
               <Download className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">App installieren</span>
             </button>
-          )}
-
-          <button
-            onClick={toggleTheme}
-            className="p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/60 text-slate-300 hover:text-white transition-all shadow-inner"
-            aria-label="Designmodus umschalten"
-            title={settings.theme === 'dark' ? 'Hell-Modus aktivieren' : 'Dunkel-Modus aktivieren'}
-          >
-            {settings.theme === 'dark' ? (
-              <Sun className="w-4 h-4 text-amber-400 animate-spin-slow" />
-            ) : (
-              <Moon className="w-4 h-4 text-cyan-400" />
-            )}
-          </button>
-        </div>
+          </div>
+        )}
       </div>
     </header>
   );
