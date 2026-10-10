@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { hexToRgb, rgbToHex } from '../../engine/colorMath';
+import { hexToRgb, rgbToHex, hexToCmy, cmyToHex } from '../../engine/colorMath';
 import { ImageColorPicker } from '../common/ImageColorPicker';
 import { Pipette, Sparkles } from 'lucide-react';
 
@@ -97,7 +97,14 @@ export const ColorSelection: React.FC<ColorSelectionProps> = ({
   onSelectStyle
 }) => {
   const [showImagePicker, setShowImagePicker] = useState(false);
+  const [sliderMode, setSliderMode] = useState<'pigment' | 'rgb'>('pigment');
   const rgb = hexToRgb(targetHex);
+  const cmy = hexToCmy(targetHex);
+  const pigmentPercent = {
+    r: Math.round(cmy.m * 100), // Rot-Pink (Magenta)
+    g: Math.round(cmy.y * 100), // Gelb (Yellow)
+    b: Math.round(cmy.c * 100)  // Blau (Cyan)
+  };
 
   const activeStyleConfig = COLOR_STYLES.find((s) => s.id === selectedStyle) || COLOR_STYLES[0];
 
@@ -113,6 +120,17 @@ export const ColorSelection: React.FC<ColorSelectionProps> = ({
   const handleRgbChange = (channel: 'r' | 'g' | 'b', val: number) => {
     const newRgb = { ...rgb, [channel]: Math.max(0, Math.min(255, val)) };
     onChangeColor(rgbToHex(newRgb.r, newRgb.g, newRgb.b));
+  };
+
+  const handlePigmentChange = (channel: 'r' | 'g' | 'b', percent: number) => {
+    const norm = Math.max(0, Math.min(100, percent)) / 100;
+    let newC = cmy.c;
+    let newM = cmy.m;
+    let newY = cmy.y;
+    if (channel === 'r') newM = norm;
+    if (channel === 'g') newY = norm;
+    if (channel === 'b') newC = norm;
+    onChangeColor(cmyToHex(newC, newM, newY));
   };
 
   const handleNativeEyeDropper = async () => {
@@ -277,47 +295,127 @@ export const ColorSelection: React.FC<ColorSelectionProps> = ({
             </div>
           </div>
 
-          <div className="space-y-2 pt-1 border-t border-slate-800">
-            <label className="block text-xs font-semibold text-slate-400">RGB-Farbwerte</label>
+          <div className="space-y-2.5 pt-2 border-t border-slate-800">
+            <div className="flex items-center justify-between gap-1 flex-wrap">
+              <label className="text-xs font-semibold text-slate-300">
+                {sliderMode === 'pigment' ? 'Farbregler (Rot, Gelb, Blau)' : 'Bildschirm-RGB (Rot, Grün, Blau)'}
+              </label>
 
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-bold text-rose-400 w-4">R</span>
-              <input
-                type="range"
-                min="0"
-                max="255"
-                value={rgb.r}
-                onChange={(e) => handleRgbChange('r', parseInt(e.target.value))}
-                className="w-full accent-rose-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
-              />
-              <span className="w-10 text-right font-mono text-xs text-slate-300">{rgb.r}</span>
+              <div className="flex items-center bg-slate-950 p-0.5 rounded-lg border border-slate-800 text-[10px] font-semibold">
+                <button
+                  type="button"
+                  onClick={() => setSliderMode('pigment')}
+                  className={`px-2 py-0.5 rounded-md transition-all ${
+                    sliderMode === 'pigment'
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                  title="Haarfarben-Regler: R = Rot, G = Gelb, B = Blau"
+                >
+                  Farben (R-G-B)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSliderMode('rgb')}
+                  className={`px-2 py-0.5 rounded-md transition-all ${
+                    sliderMode === 'rgb'
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                  title="Digitaler Bildschirm-Farbcode: R = Rot, G = Grün, B = Blau"
+                >
+                  Monitor (RGB)
+                </button>
+              </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-bold text-emerald-400 w-4">G</span>
-              <input
-                type="range"
-                min="0"
-                max="255"
-                value={rgb.g}
-                onChange={(e) => handleRgbChange('g', parseInt(e.target.value))}
-                className="w-full accent-emerald-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
-              />
-              <span className="w-10 text-right font-mono text-xs text-slate-300">{rgb.g}</span>
-            </div>
+            {sliderMode === 'pigment' ? (
+              <div className="space-y-2">
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-bold text-rose-400 w-12" title="Rot-Pink (Magenta)">Rot</span>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={pigmentPercent.r}
+                    onChange={(e) => handlePigmentChange('r', parseInt(e.target.value))}
+                    className="w-full accent-rose-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                  <span className="w-10 text-right font-mono text-xs text-rose-300">{pigmentPercent.r}%</span>
+                </div>
 
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-bold text-blue-400 w-4">B</span>
-              <input
-                type="range"
-                min="0"
-                max="255"
-                value={rgb.b}
-                onChange={(e) => handleRgbChange('b', parseInt(e.target.value))}
-                className="w-full accent-blue-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
-              />
-              <span className="w-10 text-right font-mono text-xs text-slate-300">{rgb.b}</span>
-            </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-bold text-amber-400 w-12" title="Gelb (Yellow)">Gelb</span>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={pigmentPercent.g}
+                    onChange={(e) => handlePigmentChange('g', parseInt(e.target.value))}
+                    className="w-full accent-amber-400 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                  <span className="w-10 text-right font-mono text-xs text-amber-300">{pigmentPercent.g}%</span>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-bold text-blue-400 w-12" title="Blau (Cyan)">Blau</span>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={pigmentPercent.b}
+                    onChange={(e) => handlePigmentChange('b', parseInt(e.target.value))}
+                    className="w-full accent-blue-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                  <span className="w-10 text-right font-mono text-xs text-blue-300">{pigmentPercent.b}%</span>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-bold text-rose-400 w-12">Rot (R)</span>
+                  <input
+                    type="range"
+                    min="0"
+                    max="255"
+                    value={rgb.r}
+                    onChange={(e) => handleRgbChange('r', parseInt(e.target.value))}
+                    className="w-full accent-rose-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                  <span className="w-10 text-right font-mono text-xs text-slate-300">{rgb.r}</span>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-bold text-emerald-400 w-12">Grün (G)</span>
+                  <input
+                    type="range"
+                    min="0"
+                    max="255"
+                    value={rgb.g}
+                    onChange={(e) => handleRgbChange('g', parseInt(e.target.value))}
+                    className="w-full accent-emerald-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                  <span className="w-10 text-right font-mono text-xs text-slate-300">{rgb.g}</span>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-bold text-blue-400 w-12">Blau (B)</span>
+                  <input
+                    type="range"
+                    min="0"
+                    max="255"
+                    value={rgb.b}
+                    onChange={(e) => handleRgbChange('b', parseInt(e.target.value))}
+                    className="w-full accent-blue-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+                  />
+                  <span className="w-10 text-right font-mono text-xs text-slate-300">{rgb.b}</span>
+                </div>
+
+                <div className="text-[10px] text-slate-400 pt-0.5">
+                  Hinweis: Im digitalen Bildschirm-RGB-Modell erzeugen Rot + Grün zusammen Gelb.
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
