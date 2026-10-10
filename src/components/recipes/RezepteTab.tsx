@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import type { ColorRecipe, PigmentProfile, ConditionerProfile } from '../../types';
 import { RecipeDetailModal } from './RecipeDetailModal';
 import { PrintRecipeView } from './PrintRecipeView';
-import { CreateRecipeModal } from './CreateRecipeModal';
-import { BookOpen, Search, Upload, Plus, Star, Trash2, FlaskConical } from 'lucide-react';
+import { BookOpen, Search, Upload, Star, Trash2, FlaskConical } from 'lucide-react';
 
 interface RezepteTabProps {
   recipes: ColorRecipe[];
@@ -30,7 +29,6 @@ export const RezepteTab: React.FC<RezepteTabProps> = ({
   const [filterFavoritesOnly, setFilterFavoritesOnly] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<ColorRecipe | null>(null);
   const [printRecipe, setPrintRecipe] = useState<ColorRecipe | null>(null);
-  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const demoRecipes = recipes.filter((r) => r.isDemo || r.title.includes('(Demo)') || r.tags?.includes('Demo'));
 
@@ -122,7 +120,7 @@ export const RezepteTab: React.FC<RezepteTabProps> = ({
             <span>Rezeptbibliothek ({recipes.length})</span>
           </h2>
           <p className="text-xs text-slate-400 mt-1">
-            Erstelle, verwalte, durchsuche und exportiere deine individuellen Haarfarben-Rezepte.
+            Verwalte, durchsuche, lösche und exportiere deine im Farblabor gemischten Rezepte.
           </p>
         </div>
 
@@ -145,11 +143,11 @@ export const RezepteTab: React.FC<RezepteTabProps> = ({
           </label>
 
           <button
-            onClick={() => setShowCreateModal(true)}
+            onClick={onNavigateToFarblabor}
             className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 font-semibold text-xs text-white rounded-xl shadow-md transition-all hover:scale-[1.02]"
           >
-            <Plus className="w-4 h-4" />
-            <span>Neues Rezept</span>
+            <FlaskConical className="w-4 h-4" />
+            <span>Im Farblabor mischen</span>
           </button>
         </div>
       </div>
@@ -189,24 +187,17 @@ export const RezepteTab: React.FC<RezepteTabProps> = ({
           </p>
           <p className="text-xs text-slate-400 max-w-sm mx-auto">
             {recipes.length === 0
-              ? 'Erstelle dein erstes eigenes Rezept direkt hier oder mische deine Wunschfarbe im Farblabor.'
+              ? 'Mische deine Wunschfarbe interaktiv im Farblabor und speichere deine Rezepturen für später.'
               : 'Ändere deinen Suchfilter oder setze die Suche zurück.'}
           </p>
 
           <div className="flex items-center justify-center gap-3 pt-2">
             <button
-              onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-xs font-semibold text-white rounded-xl shadow-md"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Rezept manuell anlegen</span>
-            </button>
-            <button
               onClick={onNavigateToFarblabor}
-              className="flex items-center gap-1.5 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 rounded-xl"
+              className="flex items-center gap-1.5 px-5 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-xs font-bold text-white rounded-xl shadow-lg transition-transform hover:scale-105"
             >
-              <FlaskConical className="w-4 h-4 text-cyan-400" />
-              <span>Im Farblabor mischen</span>
+              <FlaskConical className="w-4 h-4" />
+              <span>Jetzt im Farblabor mischen</span>
             </button>
           </div>
         </div>
@@ -314,20 +305,6 @@ export const RezepteTab: React.FC<RezepteTabProps> = ({
           onDelete={onDeleteRecipe}
           onPrint={(r) => setPrintRecipe(r)}
           onExportJson={handleExportJson}
-        />
-      )}
-
-      {/* Create Recipe Modal */}
-      {showCreateModal && (
-        <CreateRecipeModal
-          pigments={pigments}
-          conditioners={conditioners}
-          onClose={() => setShowCreateModal(false)}
-          onSave={onSaveRecipe}
-          onNavigateToFarblabor={() => {
-            setShowCreateModal(false);
-            onNavigateToFarblabor();
-          }}
         />
       )}
 
