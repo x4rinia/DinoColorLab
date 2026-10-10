@@ -18,7 +18,7 @@ export const COLOR_STYLES: StyleConfig[] = [
     id: 'pastell',
     name: 'Pastell',
     icon: '🌸',
-    desc: 'Zarte, helle Töne mit hohem Spülungsanteil',
+    desc: 'Zarte, helle Töne mit hohem Spülungsanteil zum Aufhellen',
     presets: [
       { name: 'Babyblau', hex: '#93c5fd' },
       { name: 'Pastellrosa', hex: '#f472b6' },
@@ -32,7 +32,7 @@ export const COLOR_STYLES: StyleConfig[] = [
     id: 'kraeftig',
     name: 'Kräftig / Bunt',
     icon: '💎',
-    desc: 'Leuchtende Vollton- und Knallfarben',
+    desc: 'Leuchtende Knallfarben mit etwas Spülung zum Strecken & Pflegen',
     presets: [
       { name: 'Echtes Blau', hex: '#1d4ed8' },
       { name: 'Rot-Pink', hex: '#e11d48' },
@@ -46,7 +46,7 @@ export const COLOR_STYLES: StyleConfig[] = [
     id: 'dunkel',
     name: 'Dunkel',
     icon: '🌑',
-    desc: 'Tiefe, satte und intensive Farbtöne',
+    desc: 'Tiefe, satte Töne (leichte Streckspülung, 0% bei Schwarz)',
     presets: [
       { name: 'Mitternachtsblau', hex: '#1e3a8a' },
       { name: 'Dunkelviolett', hex: '#4c1d95' },
@@ -59,7 +59,7 @@ export const COLOR_STYLES: StyleConfig[] = [
     id: 'grau_schwarz',
     name: 'Grau & Schwarz',
     icon: '🌪️',
-    desc: 'Aschige Grautöne, Anthrazit und Blauschwarz',
+    desc: 'Aschige Grautöne (mit Spülung) bis Tiefschwarz (0% Spülung)',
     presets: [
       { name: 'Silbergrau', hex: '#94a3b8' },
       { name: 'Aschgrau', hex: '#64748b' },

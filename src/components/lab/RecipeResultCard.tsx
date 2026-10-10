@@ -350,6 +350,8 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
           <br />
           • Standard-Gesamtmenge im Schälchen: <strong>40 ml</strong> (entspricht genau 2 EL + 2 TL).
           <br />
+          • <strong>Spülung:</strong> Dient auch bei kräftigen Farben zum Strecken & für cremigen Auftrag (bei reinem Schwarz 0%).
+          <br />
           • Bei Kleinstmengen unter ¼ TL: Nur wenige Tropfen oder eine Messerspitze mit dem Pinsel zugeben.
         </p>
       </div>

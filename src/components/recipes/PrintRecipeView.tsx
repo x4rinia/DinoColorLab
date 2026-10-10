@@ -189,6 +189,7 @@ export const PrintRecipeView: React.FC<PrintRecipeViewProps> = ({
           <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl text-xs text-slate-700 space-y-1">
             <div className="font-bold">🥄 Praxistipp zur Dosierung:</div>
             <div>• 1 EL = 15 ml | 1 TL = 5 ml (Kaffeelöffel) | Gesamtmenge: 40 ml (2 EL + 2 TL).</div>
+            <div>• Spülung: Dient auch bei kräftigen Farben zum Strecken & für Geschmeidigkeit (bei reinem Schwarz 0%).</div>
             <div>• Bei Kleinstmengen unter ¼ TL: Wenige Tropfen oder eine Messerspitze mit dem Färbepinsel hinzugeben.</div>
             <div>• Direktzieher sind semi-transparent: Immer zuerst eine kleine Teststrähne an unauffälliger Stelle machen.</div>
           </div>

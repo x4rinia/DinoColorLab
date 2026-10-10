@@ -49,10 +49,10 @@ export const Farblabor: React.FC<FarblaborProps> = ({
       case 'natur':
         return 30;
       case 'dunkel':
-        return 0;
+        return 15; // Bis zu 15% Spülung zum Strecken (0% bei reinem Schwarz)
       case 'kraeftig':
       default:
-        return 0;
+        return 20; // 20% Spülung zum Strecken & Pflegen bei voller Leuchtkraft
     }
   }, [selectedStyle]);
 

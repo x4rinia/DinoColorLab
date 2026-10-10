@@ -265,5 +265,36 @@ describe('Dino Color Lab Calculation Engine', () => {
       expect(rgbDil.g).toBeGreaterThan(rgbConc.g);
       expect(rgbDil.b).toBeGreaterThanOrEqual(rgbConc.b);
     });
+
+    it('adds conditioner to stretch bold colors but omits it for pure black', () => {
+      // Kräftiges Blau (maxConditioner 20%)
+      const boldBlueInput: CalculationInput = {
+        targetHex: '#1d4ed8',
+        cyanPigmentId: 1,
+        magentaPigmentId: 2,
+        yellowPigmentId: 3,
+        totalBatchGrams: 40,
+        maxConditionerRatioPercent: 20,
+        baseHairColor: { levelKey: 'bleached_level10', hex: '#fffbeb' }
+      };
+      const boldResult = calculateRecipe(boldBlueInput, demoBlue, demoRedPink, demoYellow);
+      expect(boldResult.ingredients.conditionerGrams).toBeGreaterThan(0);
+      expect(boldResult.ingredients.conditionerPercent).toBeGreaterThanOrEqual(15);
+      expect(boldResult.ingredients.conditionerPercent).toBeLessThanOrEqual(20);
+
+      // Reines Schwarz (#0a0a0a)
+      const blackInput: CalculationInput = {
+        targetHex: '#0a0a0a',
+        cyanPigmentId: 1,
+        magentaPigmentId: 2,
+        yellowPigmentId: 3,
+        totalBatchGrams: 40,
+        maxConditionerRatioPercent: 20,
+        baseHairColor: { levelKey: 'bleached_level10', hex: '#fffbeb' }
+      };
+      const blackResult = calculateRecipe(blackInput, demoBlue, demoRedPink, demoYellow);
+      expect(blackResult.ingredients.conditionerGrams).toBe(0);
+      expect(blackResult.ingredients.conditionerPercent).toBe(0);
+    });
   });
 });

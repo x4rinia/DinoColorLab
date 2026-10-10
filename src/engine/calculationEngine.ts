@@ -116,9 +116,22 @@ export function calculateRecipe(
   const rawPigmentSum = rawC + rawM + rawY;
 
   let calcConditionerRatio = 0;
-  if (rawPigmentSum > 0) {
-    const requiredDilution = Math.max(0, Math.min(maxConditionerRatio, targetBrightness * 0.9));
-    calcConditionerRatio = Math.min(maxConditionerRatio, requiredDilution);
+  if (rawPigmentSum > 0 && maxConditionerRatio > 0) {
+    // Wenn die Zielfarbe sehr tief dunkel / schwarz ist, darf keine Spülung rein (Schwarz braucht 100% Pigmentdichte)
+    const isNearBlack = targetBrightness < 0.16 || (targetRgb.r < 30 && targetRgb.g < 30 && targetRgb.b < 30);
+
+    if (isNearBlack) {
+      calcConditionerRatio = 0;
+    } else {
+      // Grund-Streckanteil für Konsistenz, Pflege und gleichmäßigen Auftrag (z. B. 15-20% bei kräftigen Farben)
+      const baseStretchRatio = Math.min(maxConditionerRatio, 0.15);
+
+      // Zusätzliche Verdünnung/Aufhellung bei hellen Pastelltönen
+      const brightnessDilution = Math.max(0, targetBrightness - 0.25) * 1.1;
+      const targetDilution = Math.max(baseStretchRatio, brightnessDilution);
+
+      calcConditionerRatio = Math.min(maxConditionerRatio, targetDilution);
+    }
   }
 
   const pigmentMassFraction = 1 - calcConditionerRatio;
