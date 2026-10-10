@@ -9,12 +9,11 @@ import type {
   CalculationMode
 } from '../types';
 import {
-  hexToCmy,
-  mixPigmentsSubtractive,
   calculateDeltaE,
   normalizeHex,
   hexToRgb,
-  BASE_HAIR_COLORS
+  BASE_HAIR_COLORS,
+  calculateResultOnHair
 } from './colorMath';
 
 export interface EngineOptions {
@@ -52,7 +51,6 @@ export function calculateRecipe(
   const mode: CalculationMode = isFullyCalibrated ? 'calibrated' : 'demo_experimental';
 
   const baseHairHex = input.baseHairColor.hex || BASE_HAIR_COLORS[input.baseHairColor.levelKey]?.hex || '#fffbeb';
-  const targetCmy = hexToCmy(targetHex);
 
   let gainC = 1.0 / (cyanPigment.intensity || 1.0);
   let gainM = 1.0 / (magentaPigment.intensity || 1.0);
@@ -75,9 +73,45 @@ export function calculateRecipe(
 
   const isLighterThanBase = targetBrightness > baseBrightness + 0.05;
 
-  let rawC = targetCmy.c * gainC;
-  let rawM = targetCmy.m * gainM;
-  let rawY = targetCmy.y * gainY;
+  // Chromatische Farbzerlegung für Direktzieher
+  // Blau absorbiert Rot (max - normR)
+  // Rot-Pink absorbiert Grün (max - normG)
+  // Gelb absorbiert Blau (max - normB)
+  const normR = targetRgb.r / 255;
+  const normG = targetRgb.g / 255;
+  const normB = targetRgb.b / 255;
+
+  const maxVal = Math.max(normR, normG, normB);
+  const minVal = Math.min(normR, normG, normB);
+  const delta = maxVal - minVal;
+  const sat = maxVal > 0 ? delta / maxVal : 0;
+
+  const chromaC = maxVal - normR;
+  const chromaM = maxVal - normG;
+  const chromaY = maxVal - normB;
+  const chromaSum = chromaC + chromaM + chromaY;
+
+  let cRatio = 0;
+  let mRatio = 0;
+  let yRatio = 0;
+
+  if (chromaSum > 0) {
+    cRatio = chromaC / chromaSum;
+    mRatio = chromaM / chromaSum;
+    yRatio = chromaY / chromaSum;
+  }
+
+  // Für sehr ungesättigte Töne (Grau, Schwarz, Erdtöne)
+  if (sat < 0.25) {
+    const neutralWeight = (0.25 - sat) / 0.25;
+    cRatio = cRatio * (1 - neutralWeight) + 0.38 * neutralWeight;
+    mRatio = mRatio * (1 - neutralWeight) + 0.34 * neutralWeight;
+    yRatio = yRatio * (1 - neutralWeight) + 0.28 * neutralWeight;
+  }
+
+  let rawC = cRatio * gainC;
+  let rawM = mRatio * gainM;
+  let rawY = yRatio * gainY;
 
   const rawPigmentSum = rawC + rawM + rawY;
 
@@ -157,18 +191,10 @@ export function calculateRecipe(
     totalGrams
   };
 
-  const estimatedResultHex = mixPigmentsSubtractive(
-    cyanG / totalGrams,
-    magG / totalGrams,
-    yelG / totalGrams,
-    condG / totalGrams,
-    cyanPigment.referenceHex,
-    magentaPigment.referenceHex,
-    yellowPigment.referenceHex,
-    cyanPigment.intensity,
-    magentaPigment.intensity,
-    yellowPigment.intensity,
-    baseHairHex
+  const estimatedResultHex = calculateResultOnHair(
+    targetHex,
+    baseHairHex,
+    input.maxConditionerRatioPercent > 60
   );
 
   const deltaEToTarget = calculateDeltaE(targetHex, estimatedResultHex);

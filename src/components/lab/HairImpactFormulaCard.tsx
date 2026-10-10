@@ -1,21 +1,25 @@
 import React from 'react';
 import { AlertTriangle, CheckCircle2, Plus, Equal, Sparkles } from 'lucide-react';
+import { calculateResultOnHair } from '../../engine/colorMath';
 
 interface HairImpactFormulaCardProps {
-  bowlMixtureHex: string;
+  dyeColorHex: string;
   baseHairHex: string;
   baseHairLevelName: string;
-  estimatedResultHex: string;
+  estimatedResultHex?: string;
   isPastelMode?: boolean;
 }
 
 export const HairImpactFormulaCard: React.FC<HairImpactFormulaCardProps> = ({
-  bowlMixtureHex,
+  dyeColorHex,
   baseHairHex,
   baseHairLevelName,
   estimatedResultHex,
   isPastelMode = false
 }) => {
+  // Berechne das realistische Farbergebnis auf dem Haar
+  const resultOnHair = estimatedResultHex || calculateResultOnHair(dyeColorHex, baseHairHex, isPastelMode);
+
   // Analysiere, ob das Farbergebnis klappen wird oder ob es "nix wird"
   const evaluateCompatibility = () => {
     // 1. Ausgangshaar Helligkeit & Farbstich schätzen
@@ -25,9 +29,9 @@ export const HairImpactFormulaCard: React.FC<HairImpactFormulaCardProps> = ({
     const baseBrightness = (baseR + baseG + baseB) / 3;
 
     // Ziel/Mischfarbe RGB
-    const mixR = parseInt(bowlMixtureHex.slice(1, 3), 16) || 0;
-    const mixG = parseInt(bowlMixtureHex.slice(3, 5), 16) || 0;
-    const mixB = parseInt(bowlMixtureHex.slice(5, 7), 16) || 0;
+    const mixR = parseInt(dyeColorHex.slice(1, 3), 16) || 0;
+    const mixG = parseInt(dyeColorHex.slice(3, 5), 16) || 0;
+    const mixB = parseInt(dyeColorHex.slice(5, 7), 16) || 0;
     const mixBrightness = (mixR + mixG + mixB) / 3;
 
     const isBlueDominant = mixB > mixR + 30 && mixB > mixG + 10;
@@ -113,16 +117,16 @@ export const HairImpactFormulaCard: React.FC<HairImpactFormulaCardProps> = ({
       {/* Die visuelle Formel: Farbe + Haarfarbe = Ergebnis */}
       <div className="bg-slate-950/70 p-4 rounded-2xl border border-slate-800/80">
         <div className="flex items-center justify-between gap-1 sm:gap-3 text-center">
-          {/* 1. Farbmischung */}
+          {/* 1. Farbmischung / Wunschfarbe */}
           <div className="flex-1 space-y-1">
             <span className="text-[11px] font-semibold text-slate-300 block">Farbe</span>
             <div
               className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl border-2 border-white/20 shadow-md mx-auto transition-transform hover:scale-105"
-              style={{ backgroundColor: bowlMixtureHex }}
-              title={`Gemischte Farbe: ${bowlMixtureHex}`}
+              style={{ backgroundColor: dyeColorHex }}
+              title={`Eingestellte Farbe: ${dyeColorHex}`}
             />
             <span className="text-[10px] font-mono font-bold text-slate-300 block">
-              {bowlMixtureHex.toUpperCase()}
+              {dyeColorHex.toUpperCase()}
             </span>
           </div>
 
@@ -152,11 +156,11 @@ export const HairImpactFormulaCard: React.FC<HairImpactFormulaCardProps> = ({
             <span className="text-[11px] font-bold text-emerald-400 block">Ergebnis</span>
             <div
               className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl border-2 border-emerald-400/50 shadow-lg mx-auto transition-transform hover:scale-105"
-              style={{ backgroundColor: estimatedResultHex }}
-              title={`Ergebnis auf dem Haar: ${estimatedResultHex}`}
+              style={{ backgroundColor: resultOnHair }}
+              title={`Ergebnis auf dem Haar: ${resultOnHair}`}
             />
             <span className="text-[10px] font-mono font-bold text-emerald-300 block">
-              {estimatedResultHex.toUpperCase()}
+              {resultOnHair.toUpperCase()}
             </span>
           </div>
         </div>

@@ -176,3 +176,35 @@ export function mixPigmentsSubtractive(
 
   return rgbToHex(outR, outG, outB);
 }
+
+/**
+ * Berechnet das realistische, transparente Farbergebnis einer Haarfarbe auf der Ausgangshaarbasis.
+ * Direktzieher legen sich lasierend um das Haar (subtraktive Filterwirkung).
+ */
+export function calculateResultOnHair(
+  dyeHex: string,
+  baseHairHex: string,
+  isPastel: boolean = false
+): string {
+  const dyeRgb = hexToRgb(dyeHex);
+  const hairRgb = hexToRgb(baseHairHex);
+
+  const dyeStrength = isPastel ? 0.65 : 0.95;
+
+  const transR = 1 - (1 - dyeRgb.r / 255) * dyeStrength;
+  const transG = 1 - (1 - dyeRgb.g / 255) * dyeStrength;
+  const transB = 1 - (1 - dyeRgb.b / 255) * dyeStrength;
+
+  let outR = hairRgb.r * transR;
+  let outG = hairRgb.g * transG;
+  let outB = hairRgb.b * transB;
+
+  if (isPastel) {
+    outR = outR * 0.7 + hairRgb.r * 0.3;
+    outG = outG * 0.7 + hairRgb.g * 0.3;
+    outB = outB * 0.7 + hairRgb.b * 0.3;
+  }
+
+  return rgbToHex(outR, outG, outB);
+}
+

@@ -6,7 +6,6 @@ import type {
   ColorRecipe
 } from '../../types';
 import { calculateRecipe } from '../../engine/calculationEngine';
-import { mixPigmentsSubtractive } from '../../engine/colorMath';
 import { ColorSelection, type ColorStyleCategory } from './ColorSelection';
 import { BaseHairSelector } from './BaseHairSelector';
 import { HairImpactFormulaCard } from './HairImpactFormulaCard';
@@ -116,23 +115,6 @@ export const Farblabor: React.FC<FarblaborProps> = ({
     baseHairColor
   ]);
 
-  // Gemischte Farbe in der Färbeschale (auf weißer Basis)
-  const bowlMixtureHex = useMemo(() => {
-    return mixPigmentsSubtractive(
-      calculationResult.ingredients.cyanGrams / calculationResult.ingredients.totalGrams,
-      calculationResult.ingredients.magentaGrams / calculationResult.ingredients.totalGrams,
-      calculationResult.ingredients.yellowGrams / calculationResult.ingredients.totalGrams,
-      calculationResult.ingredients.conditionerGrams / calculationResult.ingredients.totalGrams,
-      cyanPigment.referenceHex,
-      magentaPigment.referenceHex,
-      yellowPigment.referenceHex,
-      cyanPigment.intensity,
-      magentaPigment.intensity,
-      yellowPigment.intensity,
-      '#ffffff'
-    );
-  }, [calculationResult, cyanPigment, magentaPigment, yellowPigment]);
-
   const handleConfirmSaveRecipe = async () => {
     if (!recipeTitle.trim()) return;
 
@@ -199,7 +181,7 @@ export const Farblabor: React.FC<FarblaborProps> = ({
             2. Automatische Rezeptkarte rein in Löffelmaßen */}
         <div className="lg:col-span-6 space-y-6 sticky top-24">
           <HairImpactFormulaCard
-            bowlMixtureHex={bowlMixtureHex}
+            dyeColorHex={targetHex}
             baseHairHex={baseHairColor.hex}
             baseHairLevelName={baseHairColor.levelKey}
             estimatedResultHex={calculationResult.estimatedResultHex}
@@ -212,12 +194,12 @@ export const Farblabor: React.FC<FarblaborProps> = ({
             magentaPigment={magentaPigment}
             yellowPigment={yellowPigment}
             conditioner={conditioner}
-            mixedColorHex={bowlMixtureHex}
+            mixedColorHex={targetHex}
             onSaveRecipe={() => setShowSaveModal(true)}
             onPrintRecipe={() =>
               onPrintRecipe({
                 title: `Rezept ${targetHex.toUpperCase()}`,
-                targetHex: bowlMixtureHex,
+                targetHex: targetHex,
                 estimatedResultHex: calculationResult.estimatedResultHex,
                 baseHairColor,
                 totalBatchGrams,
