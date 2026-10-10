@@ -1,6 +1,6 @@
 import React from 'react';
 import type { ColorRecipe, PigmentProfile, ConditionerProfile } from '../../types';
-import { Printer } from 'lucide-react';
+import { Printer, Plus, Equal } from 'lucide-react';
 import {
   formatVolumeWithSpoonEstimate,
   formatConditionerSpoonEstimate,
@@ -18,15 +18,10 @@ interface PrintRecipeViewProps {
 
 export const PrintRecipeView: React.FC<PrintRecipeViewProps> = ({
   recipe,
-  pigments,
-  conditioners,
+  pigments: _pigments,
+  conditioners: _conditioners,
   onClose
 }) => {
-  const cyan = pigments.find((p) => p.id === recipe.cyanPigmentId);
-  const magenta = pigments.find((p) => p.id === recipe.magentaPigmentId);
-  const yellow = pigments.find((p) => p.id === recipe.yellowPigmentId);
-  const conditioner = conditioners.find((c) => c.id === recipe.conditionerId);
-
   const handlePrint = () => {
     window.print();
   };
@@ -37,6 +32,9 @@ export const PrintRecipeView: React.FC<PrintRecipeViewProps> = ({
     recipe.ingredients.yellowGrams,
     recipe.ingredients.conditionerGrams
   );
+
+  const baseHairHex = recipe.baseHairColor?.hex || '#fffbeb';
+  const resultHex = recipe.estimatedResultHex || recipe.targetHex;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 overflow-y-auto">
@@ -50,7 +48,7 @@ export const PrintRecipeView: React.FC<PrintRecipeViewProps> = ({
           </button>
           <button
             onClick={handlePrint}
-            className="flex items-center gap-1.5 px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold hover:bg-slate-800"
+            className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-semibold hover:bg-blue-700 shadow-md"
           >
             <Printer className="w-4 h-4" />
             <span>Jetzt drucken / PDF speichern</span>
@@ -60,31 +58,53 @@ export const PrintRecipeView: React.FC<PrintRecipeViewProps> = ({
         <div className="space-y-6">
           <div className="flex items-center justify-between border-b border-slate-200 pb-4">
             <div>
-              <div className="text-xs font-bold uppercase tracking-wider text-cyan-600">Dino Color Lab 🦕</div>
+              <div className="text-xs font-bold uppercase tracking-wider text-blue-600">Dino Color Lab 🦕</div>
               <h1 className="text-2xl font-black text-slate-900 mt-1 m-0">{recipe.title}</h1>
               <div className="text-xs text-slate-500 mt-1">
-                Erstellt am: {new Date(recipe.createdAt).toLocaleDateString('de-DE')} • Gesamtmenge: {recipe.totalBatchGrams} ml / g
+                Erstellt am: {new Date(recipe.createdAt).toLocaleDateString('de-DE')} • Portion: Teststrähne (ca. 1 TL / 5 ml)
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <div className="text-center">
+            <div className="flex items-center gap-2">
+              <div
+                className="w-16 h-16 rounded-2xl border-2 border-slate-300 shadow-sm"
+                style={{ backgroundColor: recipe.targetHex }}
+                title={`Farbe: ${recipe.targetHex}`}
+              />
+            </div>
+          </div>
+
+          {/* Formel: Farbe + Haarfarbe = Ergebnis */}
+          <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl">
+            <div className="text-xs font-bold text-slate-700 mb-2">Geschätzte Wirkung auf dem Haar:</div>
+            <div className="flex items-center justify-between gap-2 text-center">
+              <div>
                 <div
-                  className="w-14 h-14 rounded-2xl border-2 border-slate-300 shadow-sm mx-auto"
+                  className="w-12 h-12 rounded-xl border-2 border-slate-300 mx-auto"
                   style={{ backgroundColor: recipe.targetHex }}
                 />
-                <div className="text-[10px] font-bold text-slate-500 mt-1">Wunschfarbe</div>
+                <div className="text-[10px] font-bold text-slate-600 mt-1">Farbe</div>
               </div>
 
-              {recipe.baseHairColor && (
-                <div className="text-center">
-                  <div
-                    className="w-14 h-14 rounded-2xl border-2 border-slate-300 shadow-sm mx-auto"
-                    style={{ backgroundColor: recipe.baseHairColor.hex }}
-                  />
-                  <div className="text-[10px] font-bold text-slate-500 mt-1">Haar-Basis</div>
-                </div>
-              )}
+              <Plus className="w-4 h-4 text-slate-400" />
+
+              <div>
+                <div
+                  className="w-12 h-12 rounded-xl border-2 border-slate-300 mx-auto"
+                  style={{ backgroundColor: baseHairHex }}
+                />
+                <div className="text-[10px] font-bold text-slate-600 mt-1">Haarfarbe</div>
+              </div>
+
+              <Equal className="w-4 h-4 text-slate-400" />
+
+              <div>
+                <div
+                  className="w-12 h-12 rounded-xl border-2 border-emerald-500 mx-auto"
+                  style={{ backgroundColor: resultHex }}
+                />
+                <div className="text-[10px] font-bold text-emerald-700 mt-1">Ergebnis auf Haar</div>
+              </div>
             </div>
           </div>
 
@@ -94,93 +114,73 @@ export const PrintRecipeView: React.FC<PrintRecipeViewProps> = ({
             </p>
           )}
 
-          {/* Simple Ratio badge */}
-          <div className="bg-slate-50 border border-slate-200 p-3 rounded-xl flex items-center justify-between text-xs">
-            <span className="font-semibold text-slate-600">Einfaches Mischverhältnis:</span>
-            <span className="font-bold text-slate-900">{ratio}</span>
+          {/* Mischverhältnis */}
+          <div className="bg-blue-50 border border-blue-200 p-3 rounded-xl flex items-center justify-between text-xs">
+            <span className="font-semibold text-blue-900">Einfaches Mischverhältnis:</span>
+            <span className="font-bold text-blue-950">{ratio}</span>
           </div>
 
-          {/* Table with spoon measurements */}
+          {/* Tabelle rein in Löffelmaßen (KEINE GRAMMANGABEN!) */}
           <div className="border border-slate-200 rounded-2xl overflow-hidden">
             <table className="w-full text-left text-sm">
               <thead className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
                 <tr>
-                  <th className="p-3">Zutat / Pigment</th>
-                  <th className="p-3 text-center">Löffelmaß (grob)</th>
-                  <th className="p-3 text-right">Gewicht</th>
-                  <th className="p-3 text-right">Anteil</th>
+                  <th className="p-3">Zutat</th>
+                  <th className="p-3 text-right">Löffelmaß (Dosierung)</th>
+                  <th className="p-3 text-right">Anteil (%)</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
                 <tr>
                   <td className="p-3 font-medium text-slate-800 flex items-center gap-2">
                     <span className="w-3 h-3 rounded-full bg-blue-600 inline-block shadow-sm" />
-                    <span>Blau {cyan?.name ? `(${cyan.name})` : ''}</span>
+                    <span>Blau (Echtes Blau Direct Dye)</span>
                   </td>
-                  <td className="p-3 text-center font-bold text-blue-700">
+                  <td className="p-3 text-right font-bold text-blue-700">
                     {formatVolumeWithSpoonEstimate(recipe.ingredients.cyanGrams)}
                   </td>
-                  <td className="p-3 text-right font-mono font-bold text-slate-700">{recipe.ingredients.cyanGrams} g</td>
                   <td className="p-3 text-right font-mono">{recipe.ingredients.cyanPercent}%</td>
                 </tr>
                 <tr>
                   <td className="p-3 font-medium text-slate-800 flex items-center gap-2">
                     <span className="w-3 h-3 rounded-full bg-rose-600 inline-block shadow-sm" />
-                    <span>Rot-Pink {magenta?.name ? `(${magenta.name})` : ''}</span>
+                    <span>Rot-Pink (Kühles Rot/Magenta)</span>
                   </td>
-                  <td className="p-3 text-center font-bold text-rose-700">
+                  <td className="p-3 text-right font-bold text-rose-700">
                     {formatVolumeWithSpoonEstimate(recipe.ingredients.magentaGrams)}
                   </td>
-                  <td className="p-3 text-right font-mono font-bold text-slate-700">{recipe.ingredients.magentaGrams} g</td>
                   <td className="p-3 text-right font-mono">{recipe.ingredients.magentaPercent}%</td>
                 </tr>
                 <tr>
                   <td className="p-3 font-medium text-slate-800 flex items-center gap-2">
                     <span className="w-3 h-3 rounded-full bg-amber-400 inline-block shadow-sm" />
-                    <span>Gelb {yellow?.name ? `(${yellow.name})` : ''}</span>
+                    <span>Gelb (Leuchtendes Gelb)</span>
                   </td>
-                  <td className="p-3 text-center font-bold text-amber-700">
+                  <td className="p-3 text-right font-bold text-amber-700">
                     {formatVolumeWithSpoonEstimate(recipe.ingredients.yellowGrams)}
                   </td>
-                  <td className="p-3 text-right font-mono font-bold text-slate-700">{recipe.ingredients.yellowGrams} g</td>
                   <td className="p-3 text-right font-mono">{recipe.ingredients.yellowPercent}%</td>
                 </tr>
                 <tr>
                   <td className="p-3 font-medium text-slate-800 flex items-center gap-2">
                     <span className="w-3 h-3 rounded-full bg-white border border-slate-400 inline-block shadow-sm" />
-                    <span>Weiße Spülung {conditioner?.name ? `(${conditioner.name})` : ''}</span>
+                    <span>Weiße Spülung (#FFFFFF)</span>
                   </td>
-                  <td className="p-3 text-center font-bold text-slate-800">
+                  <td className="p-3 text-right font-bold text-slate-800">
                     {formatConditionerSpoonEstimate(recipe.ingredients.conditionerGrams)}
                   </td>
-                  <td className="p-3 text-right font-mono font-bold text-slate-700">{recipe.ingredients.conditionerGrams} g</td>
                   <td className="p-3 text-right font-mono">{recipe.ingredients.conditionerPercent}%</td>
-                </tr>
-                <tr className="bg-slate-100 font-bold text-slate-900 border-t-2 border-slate-300">
-                  <td className="p-3">Gesamtmenge</td>
-                  <td className="p-3 text-center text-xs font-semibold text-slate-500">
-                    1 TL = 5 ml • 1 EL = 15 ml
-                  </td>
-                  <td className="p-3 text-right font-mono text-base">{recipe.totalBatchGrams} g</td>
-                  <td className="p-3 text-right font-mono">100.0%</td>
                 </tr>
               </tbody>
             </table>
           </div>
 
-          {/* Subtractive & practical advice */}
-          <div className="bg-sky-50 border border-sky-200 p-4 rounded-2xl text-xs text-sky-950 space-y-1">
-            <div className="font-bold">Hinweis zum Farbergebnis &amp; Haar-Physik:</div>
-            <div>• Direktzieher sind semi-transparente Farbpigmente (keine Deckfarbe).</div>
-            <div>• Die Ausgangshaarfarbe bestimmt das finale Farbergebnis: Gelbstiche im Haar addieren sich subtraktiv zur Mixtur.</div>
-            <div>• Bei sehr feinen Mengen unter 0,6 ml (kleiner als ⅛ TL) empfiehlt sich eine Dosierspritze oder Feinwaage.</div>
-          </div>
-
-          <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl text-xs text-amber-900 space-y-1">
-            <div className="font-bold">Wichtige Sicherheitshinweise:</div>
-            <div>• Vor der Gesamtanwendung zwingend eine kleine Teststrähne an unauffälliger Stelle durchführen.</div>
-            <div>• Nur für direktziehende, gebrauchsfertige Haarfarben ohne Oxidationsmittel (kein Entwickler / Peroxid).</div>
-            <div>• Verträglichkeitstest (Patch-Test) gemäß Herstellerangaben der Farbtuben beachten.</div>
+          {/* Praktische Dosier-Hinweise */}
+          <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl text-xs text-slate-700 space-y-1">
+            <div className="font-bold">🥄 Praxistipp zur Dosierung:</div>
+            <div>• 1 TL = 5 ml (Kaffeelöffel) | ½ TL = 2,5 ml | Spülung: 1 EL = 15 ml.</div>
+            <div>• Bei Mengen unter ⅛ TL: Wenige Tropfen oder eine Messerspitze mit dem Färbepinsel hinzugeben.</div>
+            <div>• Direktzieher sind semi-transparent: Immer zuerst eine kleine Teststrähne an unauffälliger Stelle machen.</div>
           </div>
         </div>
       </div>

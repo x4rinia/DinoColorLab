@@ -52,21 +52,7 @@ export function calculateTeaspoonAmount(
   densityGPerMl?: number,
   isConditioner: boolean = false
 ): TeaspoonResult {
-  // Wenn kein Dichtewert hinterlegt ist und kein Volumen bekannt ist
-  if (volumeMl === undefined && (densityGPerMl === undefined || densityGPerMl <= 0)) {
-    return {
-      canMeasureTeaspoon: false,
-      teaspoonDisplay: '—',
-      fractionValue: 0,
-      diffMl: 0,
-      accuracyDescription: 'Dichte unbekannt',
-      isAccurate: false,
-      recommendation: `Für dieses Produkt ist kein Dichtewert hinterlegt. Bitte mit der Feinwaage (${grams} g) abwiegen.`,
-      recommendScaleOrSyringe: true
-    };
-  }
-
-  const ml = volumeMl !== undefined ? volumeMl : grams / (densityGPerMl || 1.0);
+  const ml = volumeMl !== undefined ? volumeMl : (densityGPerMl && densityGPerMl > 0 ? grams / densityGPerMl : grams);
 
   if (ml <= 0.001) {
     return {
@@ -132,17 +118,17 @@ export function calculateTeaspoonAmount(
     };
   }
 
-  // Bei Mengen unter 0,625 ml (⅛ TL)
+  // Bei Mengen unter 0,625 ml (weniger als ⅛ TL)
   if (ml < 0.625) {
     return {
       canMeasureTeaspoon: false,
-      teaspoonDisplay: '< ⅛ TL',
+      teaspoonDisplay: '< ⅛ TL (Tropfen/Spitze)',
       fractionValue: 0.625,
       diffMl: Math.round((0.625 - ml) * 1000) / 1000,
-      accuracyDescription: 'Kleinstmenge (< ⅛ TL)',
+      accuracyDescription: 'Sehr kleine Menge',
       isAccurate: false,
-      recommendation: `Kleinstmenge (${ml.toFixed(2)} ml): Teelöffel sind viel zu grob! Bitte eine 1 ml-Dosierspritze oder eine 0,01g-Feinwaage nutzen.`,
-      recommendScaleOrSyringe: true
+      recommendation: 'Nur wenige Tropfen bzw. eine Messerspitze hinzugeben (oder eine 1-ml-Dosierspritze nutzen).',
+      recommendScaleOrSyringe: false
     };
   }
 

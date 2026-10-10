@@ -36,19 +36,16 @@ describe('Unit Conversions & Measurement Engine', () => {
     expect(res.isAccurate).toBe(true);
   });
 
-  it('refuses teaspoon conversion when density is unknown and volume is undefined', () => {
-    const res = calculateTeaspoonAmount(undefined, 3.5, undefined);
-    expect(res.canMeasureTeaspoon).toBe(false);
-    expect(res.teaspoonDisplay).toBe('—');
-    expect(res.accuracyDescription).toBe('Dichte unbekannt');
-    expect(res.recommendScaleOrSyringe).toBe(true);
+  it('correctly falls back to 1.0 g/ml when density is undefined', () => {
+    const res = calculateTeaspoonAmount(undefined, 2.5, undefined);
+    expect(res.canMeasureTeaspoon).toBe(true);
+    expect(res.teaspoonDisplay).toBe('½ TL');
   });
 
-  it('recommends scale or syringe for amounts below 0.625 ml (< ⅛ TL)', () => {
+  it('recommends drops or syringe for amounts below 0.625 ml (< ⅛ TL)', () => {
     const res = calculateTeaspoonAmount(0.2, 0.2, 1.0);
     expect(res.canMeasureTeaspoon).toBe(false);
-    expect(res.teaspoonDisplay).toBe('< ⅛ TL');
-    expect(res.recommendScaleOrSyringe).toBe(true);
+    expect(res.teaspoonDisplay).toBe('< ⅛ TL (Tropfen/Spitze)');
     expect(res.recommendation).toContain('Dosierspritze');
   });
 

@@ -14,10 +14,8 @@ import { SafetyBanner } from './components/common/SafetyBanner';
 import { Farblabor } from './components/lab/Farblabor';
 import { PigmenteTab } from './components/pigments/PigmenteTab';
 import { RezepteTab } from './components/recipes/RezepteTab';
-import { TeststraehnenTab } from './components/strandtests/TeststraehnenTab';
-import { EinstellungenTab } from './components/settings/EinstellungenTab';
 import { PrintRecipeView } from './components/recipes/PrintRecipeView';
-import type { PigmentProfile, ConditionerProfile, ColorRecipe, StrandTest, AppSettings } from './types';
+import type { ColorRecipe, StrandTest, AppSettings } from './types';
 
 export function App() {
   const [activeTab, setActiveTab] = useState<TabType>('farblabor');
@@ -71,33 +69,6 @@ export function App() {
     await updateAppSettings(changes);
   };
 
-  const handleSavePigment = async (pigment: Omit<PigmentProfile, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const now = new Date().toISOString();
-    await db.pigments.add({
-      ...pigment,
-      createdAt: now,
-      updatedAt: now
-    });
-  };
-
-  const handleUpdatePigment = async (id: number, changes: Partial<PigmentProfile>) => {
-    await db.pigments.update(id, {
-      ...changes,
-      updatedAt: new Date().toISOString()
-    });
-  };
-
-  const handleDeletePigment = async (id: number) => {
-    await db.pigments.delete(id);
-  };
-
-  const handleSaveConditioner = async (conditioner: Omit<ConditionerProfile, 'id' | 'createdAt'>) => {
-    await db.conditioners.add({
-      ...conditioner,
-      createdAt: new Date().toISOString()
-    });
-  };
-
   const handleSaveRecipe = async (recipe: Omit<ColorRecipe, 'id' | 'createdAt' | 'updatedAt'>) => {
     const now = new Date().toISOString();
     await db.recipes.add({
@@ -125,12 +96,6 @@ export function App() {
     });
   };
 
-  const handleDeleteStrandTest = async (id: number) => {
-    await db.strandTests.delete(id);
-  };
-
-  const handleReloadAllData = () => {};
-
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans transition-colors duration-300 selection:bg-cyan-500 selection:text-slate-950">
       <SafetyBanner />
@@ -146,7 +111,6 @@ export function App() {
         activeTab={activeTab}
         onSelectTab={setActiveTab}
         recipeCount={recipes.length}
-        testCount={strandTests.length}
       />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6">
@@ -166,14 +130,7 @@ export function App() {
         )}
 
         {activeTab === 'pigmente' && (
-          <PigmenteTab
-            pigments={pigments}
-            conditioners={conditioners}
-            onSavePigment={handleSavePigment}
-            onUpdatePigment={handleUpdatePigment}
-            onDeletePigment={handleDeletePigment}
-            onSaveConditioner={handleSaveConditioner}
-          />
+          <PigmenteTab />
         )}
 
         {activeTab === 'rezepte' && (
@@ -185,24 +142,6 @@ export function App() {
             onUpdateRecipe={handleUpdateRecipe}
             onDeleteRecipe={handleDeleteRecipe}
             onNavigateToFarblabor={() => setActiveTab('farblabor')}
-          />
-        )}
-
-        {activeTab === 'teststraehnen' && (
-          <TeststraehnenTab
-            strandTests={strandTests}
-            pigments={pigments}
-            conditioners={conditioners}
-            onSaveStrandTest={handleSaveStrandTest}
-            onDeleteStrandTest={handleDeleteStrandTest}
-          />
-        )}
-
-        {activeTab === 'einstellungen' && (
-          <EinstellungenTab
-            settings={localSettings}
-            onUpdateSettings={handleUpdateSettings}
-            onReloadAllData={handleReloadAllData}
           />
         )}
       </main>

@@ -1,6 +1,10 @@
 import React from 'react';
 import type { ColorRecipe, PigmentProfile, ConditionerProfile } from '../../types';
 import { X, Copy, Download, Printer, Star, Trash2, Tag } from 'lucide-react';
+import {
+  formatVolumeWithSpoonEstimate,
+  formatConditionerSpoonEstimate
+} from '../../engine/unitConversions';
 
 interface RecipeDetailModalProps {
   recipe: ColorRecipe;
@@ -79,25 +83,29 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
             <thead className="bg-slate-800/60 text-slate-300 font-semibold border-b border-slate-800">
               <tr>
                 <th className="p-3">Zutat</th>
-                <th className="p-3 text-right">Gewicht</th>
+                <th className="p-3 text-right">Löffelmaß</th>
                 <th className="p-3 text-right">Anteil</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800 text-slate-200">
               <tr>
                 <td className="p-3 flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-blue-600 shadow-sm" />
                   <span>Blau: {cyan?.name || 'Blau'}</span>
                 </td>
-                <td className="p-3 text-right font-mono font-bold text-blue-300">{recipe.ingredients.cyanGrams} g</td>
+                <td className="p-3 text-right font-bold text-blue-300">
+                  {formatVolumeWithSpoonEstimate(recipe.ingredients.cyanGrams)}
+                </td>
                 <td className="p-3 text-right font-mono text-slate-400">{recipe.ingredients.cyanPercent}%</td>
               </tr>
               <tr>
                 <td className="p-3 flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-sm" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-600 shadow-sm" />
                   <span>Rot-Pink: {magenta?.name || 'Rot-Pink'}</span>
                 </td>
-                <td className="p-3 text-right font-mono font-bold text-rose-300">{recipe.ingredients.magentaGrams} g</td>
+                <td className="p-3 text-right font-bold text-rose-300">
+                  {formatVolumeWithSpoonEstimate(recipe.ingredients.magentaGrams)}
+                </td>
                 <td className="p-3 text-right font-mono text-slate-400">{recipe.ingredients.magentaPercent}%</td>
               </tr>
               <tr>
@@ -105,7 +113,9 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
                   <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-sm" />
                   <span>Gelb: {yellow?.name || 'Gelb'}</span>
                 </td>
-                <td className="p-3 text-right font-mono font-bold text-amber-300">{recipe.ingredients.yellowGrams} g</td>
+                <td className="p-3 text-right font-bold text-amber-300">
+                  {formatVolumeWithSpoonEstimate(recipe.ingredients.yellowGrams)}
+                </td>
                 <td className="p-3 text-right font-mono text-slate-400">{recipe.ingredients.yellowPercent}%</td>
               </tr>
               <tr>
@@ -113,12 +123,14 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
                   <span className="w-2.5 h-2.5 rounded-full bg-white border border-slate-400 shadow-sm" />
                   <span>Weiße Spülung: {conditioner?.name || 'Weiße Spülung'}</span>
                 </td>
-                <td className="p-3 text-right font-mono font-bold text-white">{recipe.ingredients.conditionerGrams} g</td>
+                <td className="p-3 text-right font-bold text-white">
+                  {formatConditionerSpoonEstimate(recipe.ingredients.conditionerGrams)}
+                </td>
                 <td className="p-3 text-right font-mono text-slate-400">{recipe.ingredients.conditionerPercent}%</td>
               </tr>
               <tr className="bg-slate-900 font-bold border-t border-slate-700 text-white">
-                <td className="p-3">Gesamtmenge</td>
-                <td className="p-3 text-right font-mono text-cyan-300">{recipe.totalBatchGrams} g</td>
+                <td className="p-3">Portion</td>
+                <td className="p-3 text-right font-semibold text-blue-300">Teststrähne (ca. 1 TL / 5 ml)</td>
                 <td className="p-3 text-right font-mono">100%</td>
               </tr>
             </tbody>
