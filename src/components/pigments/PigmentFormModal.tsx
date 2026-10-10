@@ -105,12 +105,20 @@ export const PigmentFormModal: React.FC<PigmentFormModalProps> = ({
               <label className="block text-xs font-semibold text-slate-400 mb-1">Farbgruppe</label>
               <select
                 value={colorGroup}
-                onChange={(e) => setColorGroup(e.target.value as ColorGroup)}
+                onChange={(e) => {
+                  const grp = e.target.value as ColorGroup;
+                  setColorGroup(grp);
+                  if (!pigment) {
+                    if (grp === 'cyan') setReferenceHex('#2563eb');
+                    else if (grp === 'magenta') setReferenceHex('#e11d48');
+                    else if (grp === 'yellow') setReferenceHex('#ffd600');
+                  }
+                }}
                 className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500"
               >
-                <option value="cyan">Cyan (Blau-Grün)</option>
-                <option value="magenta">Magenta (Pink-Rot)</option>
-                <option value="yellow">Gelb (Yellow)</option>
+                <option value="cyan">Blau (echtes kräftiges Blau, kein Türkis)</option>
+                <option value="magenta">Rot-Pink (kühles pinkstichiges Rot für Violett)</option>
+                <option value="yellow">Gelb (klares leuchtendes Gelb)</option>
               </select>
             </div>
 

@@ -3,14 +3,14 @@ import type { PigmentProfile, ConditionerProfile, ColorRecipe, StrandTest, AppSe
 export const INITIAL_PIGMENTS: PigmentProfile[] = [
   {
     id: 1,
-    name: 'Demo Cyan Direct Dye (Beispiel)',
+    name: 'Demo Blau Direct Dye (Beispiel)',
     brand: 'Dino Lab Demos',
     colorGroup: 'cyan',
-    referenceHex: '#00b4d8',
+    referenceHex: '#2563eb',
     intensity: 1.0,
     densityGPerMl: 1.02,
     concentrationData: 'Demonstration Pigment. Nicht für reale Haare ohne Strandtest.',
-    notes: 'DEMO-Profil zur Veranschaulichung der Mischfunktion.',
+    notes: 'Kräftiges, echtes Blau (kein Türkis) zur Veranschaulichung der Farbmischung.',
     status: 'uncalibrated',
     isDemo: true,
     createdAt: new Date().toISOString(),
@@ -18,14 +18,14 @@ export const INITIAL_PIGMENTS: PigmentProfile[] = [
   },
   {
     id: 2,
-    name: 'Demo Magenta Vivid (Beispiel)',
+    name: 'Demo Rot-Pink Vivid (Beispiel)',
     brand: 'Dino Lab Demos',
     colorGroup: 'magenta',
-    referenceHex: '#e6007e',
+    referenceHex: '#e11d48',
     intensity: 1.0,
     densityGPerMl: 1.01,
     concentrationData: 'Demonstration Pigment.',
-    notes: 'DEMO-Profil zur Veranschaulichung der Mischfunktion.',
+    notes: 'Kühles, pinkstichiges Rot für kräftige Violett- und Beerentöne.',
     status: 'uncalibrated',
     isDemo: true,
     createdAt: new Date().toISOString(),
@@ -33,14 +33,14 @@ export const INITIAL_PIGMENTS: PigmentProfile[] = [
   },
   {
     id: 3,
-    name: 'Demo Sun Yellow (Beispiel)',
+    name: 'Demo Sonnengelb (Beispiel)',
     brand: 'Dino Lab Demos',
     colorGroup: 'yellow',
-    referenceHex: '#ffea00',
+    referenceHex: '#ffd600',
     intensity: 1.0,
     densityGPerMl: 1.0,
     concentrationData: 'Demonstration Pigment.',
-    notes: 'DEMO-Profil zur Veranschaulichung der Mischfunktion.',
+    notes: 'Klares, leuchtendes Gelb für leuchtende Grün- und Orangetöne.',
     status: 'uncalibrated',
     isDemo: true,
     createdAt: new Date().toISOString(),
@@ -51,10 +51,10 @@ export const INITIAL_PIGMENTS: PigmentProfile[] = [
 export const INITIAL_CONDITIONER: ConditionerProfile[] = [
   {
     id: 1,
-    name: 'Demo Neutral Conditioner (Spülung)',
+    name: 'Weiße Spülung (Neutral)',
     brand: 'Dino Lab Demos',
     densityGPerMl: 1.0,
-    notes: 'Neutrale, pigmentfreie Haarspülung zum Verdünnen von Direktziehern.',
+    notes: 'Neutrale weiße Haarspülung (#FFFFFF) zum Verdünnen und Pastellisieren.',
     isDemo: true,
     createdAt: new Date().toISOString()
   }
@@ -64,10 +64,10 @@ export const INITIAL_SETTINGS: AppSettings = {
   id: 1,
   theme: 'dark',
   disclaimerAccepted: false,
-  defaultBatchGrams: 50,
+  defaultBatchGrams: 5,
   roundingPrecision: 0.1,
-  recentColors: ['#38bdf8', '#ec4899', '#eab308', '#a855f7', '#14b8a6'],
-  favoriteColors: ['#38bdf8', '#ec4899', '#a855f7']
+  recentColors: ['#3b82f6', '#e11d48', '#ffd600', '#8b5cf6', '#10b981'],
+  favoriteColors: ['#3b82f6', '#e11d48', '#8b5cf6']
 };
 
 export const INITIAL_RECIPES: ColorRecipe[] = [

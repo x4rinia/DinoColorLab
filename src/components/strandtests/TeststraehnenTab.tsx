@@ -130,10 +130,10 @@ export const TeststraehnenTab: React.FC<TeststraehnenTabProps> = ({
 
               {/* Actual Grams Breakdown */}
               <div className="grid grid-cols-4 gap-1 text-center text-[10px] font-mono font-bold bg-slate-950/40 p-2 rounded-xl border border-slate-800">
-                <div className="text-cyan-300">C: {test.actualCyanGrams}g</div>
-                <div className="text-fuchsia-300">M: {test.actualMagentaGrams}g</div>
-                <div className="text-amber-300">Y: {test.actualYellowGrams}g</div>
-                <div className="text-purple-300">Sp: {test.actualConditionerGrams}g</div>
+                <div className="text-blue-300">Blau: {test.actualCyanGrams}g</div>
+                <div className="text-rose-300">Rot-Pink: {test.actualMagentaGrams}g</div>
+                <div className="text-amber-300">Gelb: {test.actualYellowGrams}g</div>
+                <div className="text-white">Spülung: {test.actualConditionerGrams}g</div>
               </div>
 
               {/* Before/After Photos */}

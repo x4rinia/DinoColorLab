@@ -27,15 +27,15 @@ export const Header: React.FC<HeaderProps> = ({
           <DinoMascot size="sm" expression="happy" />
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight bg-gradient-to-r from-cyan-400 via-fuchsia-400 to-amber-300 bg-clip-text text-transparent m-0 p-0 leading-none">
+              <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 via-rose-400 to-amber-300 bg-clip-text text-transparent m-0 p-0 leading-none">
                 Dino Color Lab
               </h1>
               <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                v1.0 PWA
+                v1.1 PWA
               </span>
             </div>
             <p className="text-xs text-slate-400 font-medium hidden sm:block">
-              Digitaler Haarfarben-Mischassistent für direktziehende Pigmente
+              Haarfarben-Mischassistent für Blau-, Rot-Pink- und Gelb-Pigmente & weiße Spülung
             </p>
           </div>
         </div>

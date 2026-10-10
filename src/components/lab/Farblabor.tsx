@@ -12,9 +12,11 @@ import { ColorSelection } from './ColorSelection';
 import { BaseHairSelector } from './BaseHairSelector';
 import { BatchSettings } from './BatchSettings';
 import { RecipeResultCard } from './RecipeResultCard';
+import { FarbmischungsAnsicht } from './FarbmischungsAnsicht';
+import { TeststraehnenModusView } from './TeststraehnenModusView';
 import { DinoMascot } from '../common/DinoMascot';
 import confetti from 'canvas-confetti';
-import { Check, BookmarkPlus, X } from 'lucide-react';
+import { Check, BookmarkPlus, X, TestTube2, Layers } from 'lucide-react';
 
 interface FarblaborProps {
   pigments: PigmentProfile[];
@@ -37,8 +39,10 @@ export const Farblabor: React.FC<FarblaborProps> = ({
   onUpdateSettings,
   onPrintRecipe
 }) => {
-  const [targetHex, setTargetHex] = useState<string>('#38bdf8');
-  const [totalBatchGrams, setTotalBatchGrams] = useState<number>(settings.defaultBatchGrams || 50);
+  const [labMode, setLabMode] = useState<'teststrand' | 'standard'>('teststrand');
+  const [targetHex, setTargetHex] = useState<string>('#3b82f6');
+  // Default to 5g (5ml Standard) for test strand optimization
+  const [totalBatchGrams, setTotalBatchGrams] = useState<number>(settings.defaultBatchGrams || 5);
   const [maxConditionerRatioPercent, setMaxConditionerRatioPercent] = useState<number>(80);
 
   const defaultCyan = pigments.find((p) => p.colorGroup === 'cyan') || pigments[0];
@@ -49,7 +53,9 @@ export const Farblabor: React.FC<FarblaborProps> = ({
   const [selectedCyanId, setSelectedCyanId] = useState<number>(defaultCyan?.id || 1);
   const [selectedMagentaId, setSelectedMagentaId] = useState<number>(defaultMagenta?.id || 2);
   const [selectedYellowId, setSelectedYellowId] = useState<number>(defaultYellow?.id || 3);
-  const [selectedConditionerId, setSelectedConditionerId] = useState<number | undefined>(defaultConditioner?.id || 1);
+  const [selectedConditionerId, setSelectedConditionerId] = useState<number | undefined>(
+    defaultConditioner?.id || 1
+  );
 
   const [baseHairColor, setBaseHairColor] = useState<CustomBaseHairColor>({
     levelKey: 'bleached_level10',
@@ -59,7 +65,7 @@ export const Farblabor: React.FC<FarblaborProps> = ({
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [recipeTitle, setRecipeTitle] = useState('');
   const [recipeDescription, setRecipeDescription] = useState('');
-  const [recipeTags, setRecipeTags] = useState('Pastell, Türkis');
+  const [recipeTags, setRecipeTags] = useState('Teststrähne, Pastell');
 
   const cyanPigment = useMemo(
     () => pigments.find((p) => p.id === selectedCyanId) || defaultCyan,
@@ -114,7 +120,10 @@ export const Farblabor: React.FC<FarblaborProps> = ({
   const handleColorChange = (hex: string) => {
     setTargetHex(hex);
     const currentRecents = settings.recentColors || [];
-    const updatedRecents = [hex, ...currentRecents.filter((c) => c.toLowerCase() !== hex.toLowerCase())].slice(0, 8);
+    const updatedRecents = [
+      hex,
+      ...currentRecents.filter((c) => c.toLowerCase() !== hex.toLowerCase())
+    ].slice(0, 8);
     onUpdateSettings({ recentColors: updatedRecents });
   };
 
@@ -156,23 +165,66 @@ export const Farblabor: React.FC<FarblaborProps> = ({
 
   return (
     <div className="space-y-6 pb-12">
-      <div className="bg-gradient-to-r from-cyan-950/80 via-slate-900 to-fuchsia-950/80 border border-slate-800 rounded-3xl p-6 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
-        <div className="space-y-2 text-center md:text-left">
+      {/* Welcome Banner with Friendly Terms & Prominent Mode Selector */}
+      <div className="bg-gradient-to-r from-blue-950/80 via-slate-900 to-rose-950/80 border border-slate-800 rounded-3xl p-6 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="space-y-2.5 text-center md:text-left">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-300 text-xs font-semibold border border-cyan-500/30">
-            <span>Willkommen im Farb-Labor!</span>
+            <span>Dino Farblabor 🦕</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight m-0">
-            Dein individueller CMY Haarfarben-Mischrechner
+            Haarfarben-Mischlabor für direktziehende Pigmente
           </h2>
           <p className="text-xs sm:text-sm text-slate-300 max-w-xl">
-            Wähle deine Wunschfarbe, wäge Cyan-, Magenta- und Gelbpigmente mit Feinwaage-Präzision ab und mische deine ideale Farbnuance mit neutraler Haarspülung.
+            Wähle deine <strong>Wunschfarbe</strong>, dosiere <strong>Blau</strong>,{' '}
+            <strong>Rot-Pink</strong> und <strong>Gelb</strong> grammgenau und mische deine
+            individuelle Nuance mit <strong>weißer Spülung</strong>.
           </p>
+
+          {/* Mode Selector Tabs */}
+          <div className="pt-2 flex items-center justify-center md:justify-start gap-2">
+            <button
+              onClick={() => {
+                setLabMode('teststrand');
+                setTotalBatchGrams(5); // 5ml Standard
+              }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs font-bold transition-all shadow-md ${
+                labMode === 'teststrand'
+                  ? 'bg-cyan-500 text-slate-950 border-2 border-cyan-300 shadow-cyan-500/20 scale-105'
+                  : 'bg-slate-800/80 text-slate-300 hover:text-white border border-slate-700'
+              }`}
+            >
+              <TestTube2 className="w-4 h-4" />
+              <span>🧪 Modus: Kleine Teststrähne (5 ml Standard)</span>
+            </button>
+
+            <button
+              onClick={() => setLabMode('standard')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs font-bold transition-all ${
+                labMode === 'standard'
+                  ? 'bg-cyan-500 text-slate-950 border-2 border-cyan-300 shadow-cyan-500/20 scale-105'
+                  : 'bg-slate-800/80 text-slate-300 hover:text-white border border-slate-700'
+              }`}
+            >
+              <Layers className="w-4 h-4" />
+              <span>Standard-Mischung</span>
+            </button>
+          </div>
         </div>
 
-        <DinoMascot size="lg" expression="excited" speechBubble="Hallo! Wähle deine Wunschfarbe und ich berechne das Gramm-Rezept!" />
+        <DinoMascot
+          size="lg"
+          expression={labMode === 'teststrand' ? 'excited' : 'happy'}
+          speechBubble={
+            labMode === 'teststrand'
+              ? 'Im Teststrähnen-Modus! Wir mischen sparsame 5 ml zum Vortesten!'
+              : 'Wähle deine Wunschfarbe und ich berechne das Rezept!'
+          }
+        />
       </div>
 
+      {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left Column: Color Selection, Base Hair, Batch Settings */}
         <div className="lg:col-span-6 space-y-6">
           <ColorSelection
             targetHex={targetHex}
@@ -202,7 +254,8 @@ export const Farblabor: React.FC<FarblaborProps> = ({
           />
         </div>
 
-        <div className="lg:col-span-6 sticky top-24">
+        {/* Right Column: Recipe Result Card & Test Strand View */}
+        <div className="lg:col-span-6 space-y-6 sticky top-24">
           <RecipeResultCard
             result={calculationResult}
             cyanPigment={cyanPigment}
@@ -233,9 +286,41 @@ export const Farblabor: React.FC<FarblaborProps> = ({
             }}
             onPrintRecipe={() => onPrintRecipe(calculationResult)}
           />
+
+          {/* Teststrähnen-Modus View (Requirement 5) */}
+          {labMode === 'teststrand' && (
+            <TeststraehnenModusView
+              calculationResult={calculationResult}
+              cyanPigment={cyanPigment}
+              magentaPigment={magentaPigment}
+              yellowPigment={yellowPigment}
+              conditioner={conditioner}
+              targetHex={targetHex}
+              baseHairColor={baseHairColor}
+              currentBatchGrams={totalBatchGrams}
+              onChangeBatchGrams={setTotalBatchGrams}
+              onSaveStrandTest={onCreateStrandTest}
+            />
+          )}
         </div>
       </div>
 
+      {/* FarbmischungsAnsicht (Requirement 2): Subtractive Step-by-Step Mixing Visualizer */}
+      <div className="pt-2">
+        <FarbmischungsAnsicht
+          cyanPigment={cyanPigment}
+          magentaPigment={magentaPigment}
+          yellowPigment={yellowPigment}
+          conditioner={conditioner}
+          ingredients={calculationResult.ingredients}
+          estimatedResultHex={calculationResult.estimatedResultHex}
+          baseHairHex={baseHairColor.hex}
+          baseHairLevelName={baseHairColor.levelKey}
+          isCalibrated={calculationResult.mode === 'calibrated'}
+        />
+      </div>
+
+      {/* Save Recipe Modal */}
       {showSaveModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-md w-full text-white shadow-2xl relative space-y-4">
@@ -257,14 +342,16 @@ export const Farblabor: React.FC<FarblaborProps> = ({
                 type="text"
                 value={recipeTitle}
                 onChange={(e) => setRecipeTitle(e.target.value)}
-                placeholder="z. B. Dino Ozean-Türkis"
+                placeholder="z. B. Dino Ozeanblau oder Beeren-Flieder"
                 className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-cyan-300 focus:outline-none focus:border-cyan-500"
                 autoFocus
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-1">Beschreibung (optional)</label>
+              <label className="block text-xs font-semibold text-slate-400 mb-1">
+                Beschreibung (optional)
+              </label>
               <textarea
                 value={recipeDescription}
                 onChange={(e) => setRecipeDescription(e.target.value)}
@@ -274,12 +361,14 @@ export const Farblabor: React.FC<FarblaborProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-1">Tags (kommagetrennt)</label>
+              <label className="block text-xs font-semibold text-slate-400 mb-1">
+                Tags (kommagetrennt)
+              </label>
               <input
                 type="text"
                 value={recipeTags}
                 onChange={(e) => setRecipeTags(e.target.value)}
-                placeholder="Pastell, Sommer, Türkis"
+                placeholder="Teststrähne, Pastell, Sommer"
                 className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-cyan-500"
               />
             </div>

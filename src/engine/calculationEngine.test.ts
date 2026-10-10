@@ -1,15 +1,15 @@
 import { describe, it, expect } from 'vitest';
 import { calculateRecipe } from './calculationEngine';
 import type { PigmentProfile, CalculationInput } from '../types';
-import { calculateDeltaE } from './colorMath';
+import { calculateDeltaE, mixPigmentsSubtractive, hexToRgb } from './colorMath';
 
 describe('Dino Color Lab Calculation Engine', () => {
-  const demoCyan: PigmentProfile = {
+  const demoBlue: PigmentProfile = {
     id: 1,
-    name: 'Demo Cyan',
-    brand: 'Demo',
+    name: 'Demo Blau (echtes Blau)',
+    brand: 'Dino Lab Demos',
     colorGroup: 'cyan',
-    referenceHex: '#00b4d8',
+    referenceHex: '#2563eb', // Real deep blue, not turquoise!
     intensity: 1.0,
     densityGPerMl: 1.02,
     status: 'uncalibrated',
@@ -18,13 +18,14 @@ describe('Dino Color Lab Calculation Engine', () => {
     updatedAt: ''
   };
 
-  const demoMagenta: PigmentProfile = {
+  const demoRedPink: PigmentProfile = {
     id: 2,
-    name: 'Demo Magenta',
-    brand: 'Demo',
+    name: 'Demo Rot-Pink Vivid',
+    brand: 'Dino Lab Demos',
     colorGroup: 'magenta',
-    referenceHex: '#e6007e',
+    referenceHex: '#e11d48', // Cool pink-red
     intensity: 1.0,
+    densityGPerMl: 1.01,
     status: 'uncalibrated',
     isDemo: true,
     createdAt: '',
@@ -33,24 +34,25 @@ describe('Dino Color Lab Calculation Engine', () => {
 
   const demoYellow: PigmentProfile = {
     id: 3,
-    name: 'Demo Yellow',
-    brand: 'Demo',
+    name: 'Demo Sonnengelb',
+    brand: 'Dino Lab Demos',
     colorGroup: 'yellow',
-    referenceHex: '#ffea00',
+    referenceHex: '#ffd600', // Clear radiant yellow
     intensity: 1.0,
+    densityGPerMl: 1.0,
     status: 'uncalibrated',
     isDemo: true,
     createdAt: '',
     updatedAt: ''
   };
 
-  it('preserves exact total batch weight after rounding', () => {
+  it('preserves exact total batch weight for 5g standard test strand', () => {
     const input: CalculationInput = {
-      targetHex: '#38bdf8',
+      targetHex: '#7c3aed',
       cyanPigmentId: 1,
       magentaPigmentId: 2,
       yellowPigmentId: 3,
-      totalBatchGrams: 50,
+      totalBatchGrams: 5.0, // Standard 5g
       maxConditionerRatioPercent: 80,
       baseHairColor: {
         levelKey: 'bleached_level10',
@@ -58,15 +60,40 @@ describe('Dino Color Lab Calculation Engine', () => {
       }
     };
 
-    const result = calculateRecipe(input, demoCyan, demoMagenta, demoYellow);
+    const result = calculateRecipe(input, demoBlue, demoRedPink, demoYellow);
     const sum =
       result.ingredients.cyanGrams +
       result.ingredients.magentaGrams +
       result.ingredients.yellowGrams +
       result.ingredients.conditionerGrams;
 
-    expect(sum).toBe(50);
-    expect(result.ingredients.totalGrams).toBe(50);
+    expect(Math.round(sum * 10) / 10).toBe(5.0);
+    expect(result.ingredients.totalGrams).toBe(5.0);
+  });
+
+  it('preserves exact total batch weight for small 2.5g test strand', () => {
+    const input: CalculationInput = {
+      targetHex: '#ec4899',
+      cyanPigmentId: 1,
+      magentaPigmentId: 2,
+      yellowPigmentId: 3,
+      totalBatchGrams: 2.5, // 2.5g
+      maxConditionerRatioPercent: 90,
+      baseHairColor: {
+        levelKey: 'bleached_level10',
+        hex: '#fffbeb'
+      }
+    };
+
+    const result = calculateRecipe(input, demoBlue, demoRedPink, demoYellow);
+    const sum =
+      result.ingredients.cyanGrams +
+      result.ingredients.magentaGrams +
+      result.ingredients.yellowGrams +
+      result.ingredients.conditionerGrams;
+
+    expect(Math.round(sum * 10) / 10).toBe(2.5);
+    expect(result.ingredients.totalGrams).toBe(2.5);
   });
 
   it('correctly sets mode to demo_experimental when using demo pigments', () => {
@@ -75,7 +102,7 @@ describe('Dino Color Lab Calculation Engine', () => {
       cyanPigmentId: 1,
       magentaPigmentId: 2,
       yellowPigmentId: 3,
-      totalBatchGrams: 100,
+      totalBatchGrams: 5,
       maxConditionerRatioPercent: 80,
       baseHairColor: {
         levelKey: 'bleached_level10',
@@ -83,18 +110,23 @@ describe('Dino Color Lab Calculation Engine', () => {
       }
     };
 
-    const result = calculateRecipe(input, demoCyan, demoMagenta, demoYellow);
+    const result = calculateRecipe(input, demoBlue, demoRedPink, demoYellow);
     expect(result.mode).toBe('demo_experimental');
     expect(result.disclaimer).toContain('Achtung: Experimenteller Demo-Modus!');
   });
 
   it('calculates ml when density is present, and leaves ml undefined when density is absent', () => {
+    const uncalibratedWithoutDensity: PigmentProfile = {
+      ...demoRedPink,
+      densityGPerMl: undefined
+    };
+
     const input: CalculationInput = {
-      targetHex: '#00b4d8',
+      targetHex: '#2563eb',
       cyanPigmentId: 1,
       magentaPigmentId: 2,
       yellowPigmentId: 3,
-      totalBatchGrams: 50,
+      totalBatchGrams: 10,
       maxConditionerRatioPercent: 50,
       baseHairColor: {
         levelKey: 'bleached_level10',
@@ -102,7 +134,7 @@ describe('Dino Color Lab Calculation Engine', () => {
       }
     };
 
-    const result = calculateRecipe(input, demoCyan, demoMagenta, demoYellow);
+    const result = calculateRecipe(input, demoBlue, uncalibratedWithoutDensity, demoYellow);
     expect(result.ingredients.cyanMl).toBeDefined();
     expect(result.ingredients.magentaMl).toBeUndefined();
   });
@@ -113,7 +145,7 @@ describe('Dino Color Lab Calculation Engine', () => {
       cyanPigmentId: 1,
       magentaPigmentId: 2,
       yellowPigmentId: 3,
-      totalBatchGrams: 50,
+      totalBatchGrams: 5,
       maxConditionerRatioPercent: 50,
       baseHairColor: {
         levelKey: 'dark_brown_level4',
@@ -121,16 +153,117 @@ describe('Dino Color Lab Calculation Engine', () => {
       }
     };
 
-    const result = calculateRecipe(input, demoCyan, demoMagenta, demoYellow);
+    const result = calculateRecipe(input, demoBlue, demoRedPink, demoYellow);
     expect(result.isTargetAchievable).toBe(false);
     expect(result.nearestAchievableHex).toBe('#451a03');
   });
 
   it('calculates Delta E perceptual distance properly', () => {
-    const deltaE = calculateDeltaE('#00e5ff', '#00e5ff');
+    const deltaE = calculateDeltaE('#2563eb', '#2563eb');
     expect(deltaE).toBe(0);
 
     const deltaEDiff = calculateDeltaE('#000000', '#ffffff');
     expect(deltaEDiff).toBeGreaterThan(50);
+  });
+
+  describe('Subtractive Hair Pigment Mixing Principles', () => {
+    it('Blau + Rot-Pink creates violet / purple tones', () => {
+      // 50% Blau + 50% Rot-Pink
+      const mixed = mixPigmentsSubtractive(
+        0.5,
+        0.5,
+        0.0,
+        0.0,
+        demoBlue.referenceHex,
+        demoRedPink.referenceHex,
+        demoYellow.referenceHex,
+        1.0,
+        1.0,
+        1.0,
+        '#ffffff'
+      );
+      const rgb = hexToRgb(mixed);
+      // Violet has prominent blue and red with suppressed green
+      expect(rgb.b).toBeGreaterThan(rgb.g);
+      expect(rgb.r).toBeGreaterThan(rgb.g);
+    });
+
+    it('Blau + Gelb creates green tones', () => {
+      // 50% Blau + 50% Gelb
+      const mixed = mixPigmentsSubtractive(
+        0.5,
+        0.0,
+        0.5,
+        0.0,
+        demoBlue.referenceHex,
+        demoRedPink.referenceHex,
+        demoYellow.referenceHex,
+        1.0,
+        1.0,
+        1.0,
+        '#ffffff'
+      );
+      const rgb = hexToRgb(mixed);
+      // Green has prominent green channel over red
+      expect(rgb.g).toBeGreaterThan(rgb.r);
+    });
+
+    it('Rot-Pink + Gelb creates orange / warm red tones', () => {
+      // 50% Rot-Pink + 50% Gelb
+      const mixed = mixPigmentsSubtractive(
+        0.0,
+        0.5,
+        0.5,
+        0.0,
+        demoBlue.referenceHex,
+        demoRedPink.referenceHex,
+        demoYellow.referenceHex,
+        1.0,
+        1.0,
+        1.0,
+        '#ffffff'
+      );
+      const rgb = hexToRgb(mixed);
+      // Orange has prominent red and green with minimal blue
+      expect(rgb.r).toBeGreaterThan(rgb.b);
+      expect(rgb.g).toBeGreaterThan(rgb.b);
+    });
+
+    it('Adding pure white conditioner dilutes and lightens the shade towards pastel', () => {
+      const concentrated = mixPigmentsSubtractive(
+        1.0,
+        0.0,
+        0.0,
+        0.0, // 0% Spülung
+        demoBlue.referenceHex,
+        demoRedPink.referenceHex,
+        demoYellow.referenceHex,
+        1.0,
+        1.0,
+        1.0,
+        '#ffffff'
+      );
+      const diluted = mixPigmentsSubtractive(
+        1.0,
+        0.0,
+        0.0,
+        0.9, // 90% Spülung
+        demoBlue.referenceHex,
+        demoRedPink.referenceHex,
+        demoYellow.referenceHex,
+        1.0,
+        1.0,
+        1.0,
+        '#ffffff'
+      );
+
+      const rgbConc = hexToRgb(concentrated);
+      const rgbDil = hexToRgb(diluted);
+
+      // Diluted pastel shade is much brighter in all channels
+      expect(rgbDil.r).toBeGreaterThan(rgbConc.r);
+      expect(rgbDil.g).toBeGreaterThan(rgbConc.g);
+      expect(rgbDil.b).toBeGreaterThanOrEqual(rgbConc.b);
+    });
   });
 });

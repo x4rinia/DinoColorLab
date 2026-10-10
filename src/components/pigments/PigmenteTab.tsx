@@ -120,10 +120,10 @@ export const PigmenteTab: React.FC<PigmenteTabProps> = ({
         <div>
           <h2 className="text-xl font-bold flex items-center gap-2 text-white m-0">
             <Palette className="w-6 h-6 text-cyan-400" />
-            <span>Pigmentverwaltung & Produkte</span>
+            <span>Meine Grundfarben & Produkte</span>
           </h2>
           <p className="text-xs text-slate-400 mt-1">
-            Hinterlege deine eigenen Cyan-, Magenta- und Gelbpigmente zur präzisen Berechnung.
+            Hinterlege deine eigenen Blau-, Rot-Pink- und Gelbpigmente sowie weiße Spülungen zur präzisen Berechnung.
           </p>
         </div>
 
@@ -140,9 +140,9 @@ export const PigmenteTab: React.FC<PigmenteTabProps> = ({
       </div>
 
       <div className="space-y-3">
-        <h3 className="text-base font-bold text-cyan-300 flex items-center gap-2 border-b border-cyan-500/20 pb-2">
-          <span className="w-3 h-3 rounded-full bg-cyan-400" />
-          <span>Cyan-Pigmente ({cyanPigments.length})</span>
+        <h3 className="text-base font-bold text-blue-300 flex items-center gap-2 border-b border-blue-500/20 pb-2">
+          <span className="w-3 h-3 rounded-full bg-blue-500 shadow-sm" />
+          <span>Blau-Pigmente ({cyanPigments.length})</span>
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {cyanPigments.map(renderPigmentCard)}
@@ -150,9 +150,9 @@ export const PigmenteTab: React.FC<PigmenteTabProps> = ({
       </div>
 
       <div className="space-y-3">
-        <h3 className="text-base font-bold text-fuchsia-300 flex items-center gap-2 border-b border-fuchsia-500/20 pb-2">
-          <span className="w-3 h-3 rounded-full bg-fuchsia-400" />
-          <span>Magenta-Pigmente ({magentaPigments.length})</span>
+        <h3 className="text-base font-bold text-rose-300 flex items-center gap-2 border-b border-rose-500/20 pb-2">
+          <span className="w-3 h-3 rounded-full bg-rose-500 shadow-sm" />
+          <span>Rot-Pink-Pigmente ({magentaPigments.length})</span>
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {magentaPigments.map(renderPigmentCard)}
@@ -161,7 +161,7 @@ export const PigmenteTab: React.FC<PigmenteTabProps> = ({
 
       <div className="space-y-3">
         <h3 className="text-base font-bold text-amber-300 flex items-center gap-2 border-b border-amber-500/20 pb-2">
-          <span className="w-3 h-3 rounded-full bg-amber-400" />
+          <span className="w-3 h-3 rounded-full bg-amber-400 shadow-sm" />
           <span>Gelb-Pigmente ({yellowPigments.length})</span>
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -170,9 +170,9 @@ export const PigmenteTab: React.FC<PigmenteTabProps> = ({
       </div>
 
       <div className="space-y-3">
-        <h3 className="text-base font-bold text-purple-300 flex items-center gap-2 border-b border-purple-500/20 pb-2">
-          <Droplet className="w-4 h-4 text-purple-400" />
-          <span>Pigmentfreie Haarspülungen ({conditioners.length})</span>
+        <h3 className="text-base font-bold text-slate-200 flex items-center gap-2 border-b border-slate-700 pb-2">
+          <span className="w-3.5 h-3.5 rounded-full bg-white border border-slate-400 inline-block shadow-sm" />
+          <span>Weiße Spülungen (#FFFFFF) ({conditioners.length})</span>
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {conditioners.map((c) => (
@@ -181,13 +181,13 @@ export const PigmenteTab: React.FC<PigmenteTabProps> = ({
               className="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 shadow-lg flex items-center justify-between"
             >
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center shrink-0">
-                  <Droplet className="w-6 h-6 text-purple-400" />
+                <div className="w-12 h-12 rounded-2xl bg-white border border-slate-400 flex items-center justify-center shrink-0 shadow-sm">
+                  <Droplet className="w-6 h-6 text-slate-700" />
                 </div>
                 <div>
                   <h4 className="text-sm font-bold text-slate-100 m-0">{c.name}</h4>
                   <div className="text-xs text-slate-400">{c.brand}</div>
-                  <div className="text-[11px] text-slate-500 font-mono mt-0.5">
+                  <div className="text-[11px] text-slate-400 font-mono mt-0.5">
                     Dichte: {c.densityGPerMl ? `${c.densityGPerMl} g/ml` : 'Standard (1.0 g/ml)'}
                   </div>
                 </div>

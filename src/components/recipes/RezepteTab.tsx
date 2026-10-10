@@ -200,10 +200,10 @@ export const RezepteTab: React.FC<RezepteTabProps> = ({
 
                 {/* Ingredients summary */}
                 <div className="grid grid-cols-4 gap-1.5 text-center text-[10px] font-mono font-bold bg-slate-950/60 p-2 rounded-xl border border-slate-800 mb-3">
-                  <div className="text-cyan-300">C: {recipe.ingredients.cyanGrams}g</div>
-                  <div className="text-fuchsia-300">M: {recipe.ingredients.magentaGrams}g</div>
-                  <div className="text-amber-300">Y: {recipe.ingredients.yellowGrams}g</div>
-                  <div className="text-purple-300">Sp: {recipe.ingredients.conditionerGrams}g</div>
+                  <div className="text-blue-300">Blau: {recipe.ingredients.cyanGrams}g</div>
+                  <div className="text-rose-300">Rot-Pink: {recipe.ingredients.magentaGrams}g</div>
+                  <div className="text-amber-300">Gelb: {recipe.ingredients.yellowGrams}g</div>
+                  <div className="text-white">Sp: {recipe.ingredients.conditionerGrams}g</div>
                 </div>
 
                 {/* Tags */}

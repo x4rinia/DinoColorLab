@@ -85,23 +85,35 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
             </thead>
             <tbody className="divide-y divide-slate-800 text-slate-200">
               <tr>
-                <td className="p-3">Cyan: {cyan?.name || 'Cyan'}</td>
-                <td className="p-3 text-right font-mono font-bold text-cyan-300">{recipe.ingredients.cyanGrams} g</td>
+                <td className="p-3 flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm" />
+                  <span>Blau: {cyan?.name || 'Blau'}</span>
+                </td>
+                <td className="p-3 text-right font-mono font-bold text-blue-300">{recipe.ingredients.cyanGrams} g</td>
                 <td className="p-3 text-right font-mono text-slate-400">{recipe.ingredients.cyanPercent}%</td>
               </tr>
               <tr>
-                <td className="p-3">Magenta: {magenta?.name || 'Magenta'}</td>
-                <td className="p-3 text-right font-mono font-bold text-fuchsia-300">{recipe.ingredients.magentaGrams} g</td>
+                <td className="p-3 flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-sm" />
+                  <span>Rot-Pink: {magenta?.name || 'Rot-Pink'}</span>
+                </td>
+                <td className="p-3 text-right font-mono font-bold text-rose-300">{recipe.ingredients.magentaGrams} g</td>
                 <td className="p-3 text-right font-mono text-slate-400">{recipe.ingredients.magentaPercent}%</td>
               </tr>
               <tr>
-                <td className="p-3">Gelb: {yellow?.name || 'Gelb'}</td>
+                <td className="p-3 flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-sm" />
+                  <span>Gelb: {yellow?.name || 'Gelb'}</span>
+                </td>
                 <td className="p-3 text-right font-mono font-bold text-amber-300">{recipe.ingredients.yellowGrams} g</td>
                 <td className="p-3 text-right font-mono text-slate-400">{recipe.ingredients.yellowPercent}%</td>
               </tr>
               <tr>
-                <td className="p-3">Spülung: {conditioner?.name || 'Haarspülung'}</td>
-                <td className="p-3 text-right font-mono font-bold text-purple-300">{recipe.ingredients.conditionerGrams} g</td>
+                <td className="p-3 flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-white border border-slate-400 shadow-sm" />
+                  <span>Weiße Spülung: {conditioner?.name || 'Weiße Spülung'}</span>
+                </td>
+                <td className="p-3 text-right font-mono font-bold text-white">{recipe.ingredients.conditionerGrams} g</td>
                 <td className="p-3 text-right font-mono text-slate-400">{recipe.ingredients.conditionerPercent}%</td>
               </tr>
               <tr className="bg-slate-900 font-bold border-t border-slate-700 text-white">

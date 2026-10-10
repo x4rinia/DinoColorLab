@@ -139,27 +139,27 @@ export const StrandTestModal: React.FC<StrandTestModalProps> = ({
             <label className="block text-xs font-semibold text-cyan-300">Tatsächlich abgewogene Mengen (Gramm)</label>
             <div className="grid grid-cols-4 gap-2 text-center text-xs">
               <div>
-                <span className="block text-[10px] text-cyan-400">Cyan (g)</span>
+                <span className="block text-[10px] text-blue-400 font-bold">Blau (g)</span>
                 <input
                   type="number"
                   step="0.1"
                   value={actualCyanGrams}
                   onChange={(e) => setActualCyanGrams(parseFloat(e.target.value) || 0)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-1.5 py-1 text-center font-mono text-cyan-300"
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-1.5 py-1 text-center font-mono text-blue-300"
                 />
               </div>
               <div>
-                <span className="block text-[10px] text-fuchsia-400">Magenta (g)</span>
+                <span className="block text-[10px] text-rose-400 font-bold">Rot-Pink (g)</span>
                 <input
                   type="number"
                   step="0.1"
                   value={actualMagentaGrams}
                   onChange={(e) => setActualMagentaGrams(parseFloat(e.target.value) || 0)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-1.5 py-1 text-center font-mono text-fuchsia-300"
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-1.5 py-1 text-center font-mono text-rose-300"
                 />
               </div>
               <div>
-                <span className="block text-[10px] text-amber-400">Gelb (g)</span>
+                <span className="block text-[10px] text-amber-400 font-bold">Gelb (g)</span>
                 <input
                   type="number"
                   step="0.1"
@@ -169,13 +169,13 @@ export const StrandTestModal: React.FC<StrandTestModalProps> = ({
                 />
               </div>
               <div>
-                <span className="block text-[10px] text-purple-400">Spülung (g)</span>
+                <span className="block text-[10px] text-slate-200 font-bold">Weiße Spülung (g)</span>
                 <input
                   type="number"
                   step="0.1"
                   value={actualConditionerGrams}
                   onChange={(e) => setActualConditionerGrams(parseFloat(e.target.value) || 0)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-1.5 py-1 text-center font-mono text-purple-300"
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-1.5 py-1 text-center font-mono text-white"
                 />
               </div>
             </div>
