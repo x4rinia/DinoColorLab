@@ -1,16 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import type { CalculationResult, PigmentProfile, ConditionerProfile } from '../../types';
-import { calculateTeaspoonAmount } from '../../engine/unitConversions';
-import { DinoMascot } from '../common/DinoMascot';
+import { calculateTeaspoonAmount, calculateSimpleRatio } from '../../engine/unitConversions';
+import { downloadRecipeCardAsPng } from '../../engine/recipeCardImageExport';
+import { mixPigmentsSubtractive } from '../../engine/colorMath';
 import {
-  AlertTriangle,
-  CheckCircle2,
   BookmarkPlus,
-  TestTube2,
   Printer,
-  ChevronDown,
-  ChevronUp,
-  Scale
+  Copy,
+  Check,
+  Download,
+  Scale,
+  Sparkles,
+  Info
 } from 'lucide-react';
 
 interface RecipeResultCardProps {
@@ -20,8 +21,9 @@ interface RecipeResultCardProps {
   yellowPigment: PigmentProfile;
   conditioner?: ConditionerProfile;
   targetHex: string;
+  baseHairHex: string;
+  baseHairLevelName: string;
   onSaveRecipe: () => void;
-  onCreateStrandTest: () => void;
   onPrintRecipe: () => void;
 }
 
@@ -32,162 +34,239 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
   yellowPigment,
   conditioner,
   targetHex,
+  baseHairHex,
+  baseHairLevelName,
   onSaveRecipe,
-  onCreateStrandTest,
   onPrintRecipe
 }) => {
-  const {
-    ingredients,
-    mode,
-    estimatedResultHex,
-    deltaEToTarget,
-    confidenceScore,
-    isTargetAchievable,
-    nearestAchievableHex,
-    disclaimer
-  } = result;
+  const { ingredients, estimatedResultHex } = result;
 
-  const [showTechnicalDetails, setShowTechnicalDetails] = useState(false);
+  const [copied, setCopied] = useState(false);
 
-  const isDemoMode = mode === 'demo_experimental';
+  // 1. Farbe der cremigen Mischung in der Rührschale (auf weißem Grund)
+  const bowlMixtureHex = useMemo(() => {
+    return mixPigmentsSubtractive(
+      ingredients.cyanGrams / ingredients.totalGrams,
+      ingredients.magentaGrams / ingredients.totalGrams,
+      ingredients.yellowGrams / ingredients.totalGrams,
+      ingredients.conditionerGrams / ingredients.totalGrams,
+      cyanPigment.referenceHex,
+      magentaPigment.referenceHex,
+      yellowPigment.referenceHex,
+      cyanPigment.intensity,
+      magentaPigment.intensity,
+      yellowPigment.intensity,
+      '#ffffff'
+    );
+  }, [ingredients, cyanPigment, magentaPigment, yellowPigment]);
 
+  // Teelöffel- und Esslöffel-Berechnungen
   const cyanTsp = calculateTeaspoonAmount(
     ingredients.cyanMl,
     ingredients.cyanGrams,
-    cyanPigment.densityGPerMl
+    cyanPigment.densityGPerMl,
+    false
   );
   const magentaTsp = calculateTeaspoonAmount(
     ingredients.magentaMl,
     ingredients.magentaGrams,
-    magentaPigment.densityGPerMl
+    magentaPigment.densityGPerMl,
+    false
   );
   const yellowTsp = calculateTeaspoonAmount(
     ingredients.yellowMl,
     ingredients.yellowGrams,
-    yellowPigment.densityGPerMl
+    yellowPigment.densityGPerMl,
+    false
   );
   const condTsp = calculateTeaspoonAmount(
     ingredients.conditionerMl,
     ingredients.conditionerGrams,
-    conditioner?.densityGPerMl || 1.0
+    conditioner?.densityGPerMl || 1.0,
+    true
   );
 
+  const simpleRatio = useMemo(() => {
+    return calculateSimpleRatio(
+      ingredients.cyanGrams,
+      ingredients.magentaGrams,
+      ingredients.yellowGrams,
+      ingredients.conditionerGrams
+    );
+  }, [ingredients]);
+
+  const handleCopyText = async () => {
+    const text = [
+      `🦕 Dino Color Lab – Rezeptkarte (${ingredients.totalGrams} ml/g)`,
+      `Wunschfarbe: ${targetHex.toUpperCase()}`,
+      `Mischfarbe Schale: ${bowlMixtureHex.toUpperCase()}`,
+      `Farbbeispiel auf Haar (${baseHairLevelName}): ${estimatedResultHex.toUpperCase()}`,
+      ``,
+      `Zutaten:`,
+      `• Blau: ${ingredients.cyanGrams} g (${cyanTsp.teaspoonDisplay})`,
+      `• Rot/Pink: ${ingredients.magentaGrams} g (${magentaTsp.teaspoonDisplay})`,
+      `• Gelb: ${ingredients.yellowGrams} g (${yellowTsp.teaspoonDisplay})`,
+      `• Weiße Spülung: ${ingredients.conditionerGrams} g (${condTsp.teaspoonDisplay})`,
+      ``,
+      `Mischverhältnis: ${simpleRatio}`,
+      `Hinweis: Haarfarben sind lasierend; die Ausgangshaarfarbe beeinflusst das Resultat.`
+    ].join('\n');
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch {
+      // Fallback
+    }
+  };
+
+  const handleDownloadPng = () => {
+    downloadRecipeCardAsPng({
+      title: `Rezept ${targetHex.toUpperCase()}`,
+      targetHex,
+      bowlMixtureHex,
+      resultOnHairHex: estimatedResultHex,
+      baseHairLevelName,
+      totalMl: ingredients.totalGrams,
+      totalGrams: ingredients.totalGrams,
+      blueGrams: ingredients.cyanGrams,
+      blueTsp: cyanTsp.teaspoonDisplay,
+      redPinkGrams: ingredients.magentaGrams,
+      redPinkTsp: magentaTsp.teaspoonDisplay,
+      yellowGrams: ingredients.yellowGrams,
+      yellowTsp: yellowTsp.teaspoonDisplay,
+      conditionerGrams: ingredients.conditionerGrams,
+      conditionerTsp: condTsp.teaspoonDisplay,
+      ratioText: simpleRatio
+    });
+  };
+
   return (
-    <div className="bg-slate-900/90 border-2 border-cyan-500/40 rounded-3xl p-6 shadow-2xl text-white backdrop-blur-md space-y-6 relative overflow-hidden">
+    <div className="bg-slate-900/90 border-2 border-cyan-500/40 rounded-3xl p-6 shadow-2xl text-white backdrop-blur-md space-y-5 relative overflow-hidden">
       <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Header */}
+      {/* Header mit Titel & 4 Speicheraktionen */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
         <div>
           <div className="flex items-center gap-2">
             <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-950">
-              Meine Mischung
+              Automatische Rezeptkarte
             </span>
-            <span
-              className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border flex items-center gap-1 ${
-                isDemoMode
-                  ? 'bg-amber-500/10 border-amber-500/40 text-amber-300'
-                  : 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300'
-              }`}
-            >
-              {isDemoMode ? <AlertTriangle className="w-3.5 h-3.5" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
-              <span>{isDemoMode ? 'Schematische Vorschau' : `Kalibriert (${confidenceScore}%)`}</span>
+            <span className="text-xs text-slate-400 font-mono">
+              {ingredients.totalGrams} ml / g
             </span>
           </div>
-          <p className="text-xs text-slate-400 mt-1">
-            Genaue Rezeptur für deine Testmenge ({ingredients.totalGrams} g).
-          </p>
+          <h3 className="text-lg font-extrabold text-slate-100 m-0 mt-1">
+            Individuelle Mischrezeptur
+          </h3>
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* 4 Speicheroptionen */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          {/* 1. Bild (PNG) speichern */}
+          <button
+            onClick={handleDownloadPng}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-500/30 text-xs font-semibold transition-all shadow-sm"
+            title="Rezeptkarte als Bild (PNG) herunterladen"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Bild (PNG)</span>
+          </button>
+
+          {/* 2. Rezept kopieren */}
+          <button
+            onClick={handleCopyText}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition-all"
+            title="Rezept als Text in Zwischenablage kopieren"
+          >
+            {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-slate-400" />}
+            <span>{copied ? 'Kopiert!' : 'Kopieren'}</span>
+          </button>
+
+          {/* 3. Für später speichern */}
           <button
             onClick={onSaveRecipe}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 font-semibold text-xs text-white shadow-md shadow-cyan-500/20 transition-all"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 font-semibold text-xs text-white shadow-md shadow-cyan-500/20 transition-all"
+            title="In deiner Rezeptbibliothek sichern"
           >
-            <BookmarkPlus className="w-4 h-4" />
-            <span>Rezept speichern</span>
+            <BookmarkPlus className="w-3.5 h-3.5" />
+            <span>Speichern</span>
           </button>
-          <button
-            onClick={onCreateStrandTest}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-500/30 font-semibold text-xs transition-all"
-            title="Dokumentiere diesen Versuch als Teststrähne"
-          >
-            <TestTube2 className="w-4 h-4" />
-            <span className="hidden sm:inline">Teststrähne</span>
-          </button>
+
+          {/* 4. Druckansicht */}
           <button
             onClick={onPrintRecipe}
-            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-all"
-            title="Druckansicht"
+            className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-all"
+            title="Druckansicht öffnen"
           >
             <Printer className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      {/* Farbe vergleichen (Color Comparison) */}
+      {/* Farbvergleich: 3 Farbfelder (Wunschfarbe, Mischung in Schale, Farbbeispiel auf Haar) */}
       <div className="bg-slate-950/70 p-4 rounded-2xl border border-slate-800 space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-bold text-slate-300">Farbe vergleichen</span>
-          <span className="text-[11px] text-slate-400">
-            {deltaEToTarget < 5
-              ? 'Sehr hohe Farbdeckung'
-              : deltaEToTarget < 15
-              ? 'Gute visuelle Annäherung'
-              : 'Merklicher Unterschied (Dichte/Haarton)'}
-          </span>
-        </div>
-
-        <div className="flex items-center justify-around gap-4 py-2">
-          <div className="text-center space-y-1.5">
-            <div className="text-xs font-semibold text-slate-400">Wunschfarbe</div>
+        <div className="grid grid-cols-3 gap-2 text-center items-center">
+          {/* 1. Wunschfarbe */}
+          <div className="space-y-1">
+            <span className="text-[11px] font-semibold text-slate-400 block">Wunschfarbe</span>
             <div
-              className="w-16 h-16 rounded-2xl border-2 border-white/20 shadow-lg mx-auto"
+              className="w-14 h-14 rounded-2xl border-2 border-white/20 shadow-md mx-auto"
               style={{ backgroundColor: targetHex }}
             />
-            <div className="text-xs font-mono font-bold text-cyan-300">{targetHex.toUpperCase()}</div>
+            <span className="text-[11px] font-mono font-bold text-cyan-300 block">
+              {targetHex.toUpperCase()}
+            </span>
           </div>
 
-          <div className="text-center text-slate-600 text-2xl font-bold">➔</div>
-
-          <div className="text-center space-y-1.5">
-            <div className="text-xs font-semibold text-slate-400">Modellschätzung</div>
+          {/* 2. Mischung Schale */}
+          <div className="space-y-1">
+            <span className="text-[11px] font-semibold text-slate-400 block">In der Schale</span>
             <div
-              className="w-16 h-16 rounded-2xl border-2 border-white/20 shadow-lg mx-auto"
+              className="w-14 h-14 rounded-2xl border-2 border-white/20 shadow-md mx-auto"
+              style={{ backgroundColor: bowlMixtureHex }}
+            />
+            <span className="text-[11px] font-mono font-bold text-slate-200 block">
+              {bowlMixtureHex.toUpperCase()}
+            </span>
+          </div>
+
+          {/* 3. Farbbeispiel auf Ausgangshaar */}
+          <div className="space-y-1">
+            <span className="text-[11px] font-semibold text-emerald-400 flex items-center justify-center gap-1">
+              <span>Auf Haar</span>
+              <span
+                className="w-2.5 h-2.5 rounded-full border border-white/40 inline-block"
+                style={{ backgroundColor: baseHairHex }}
+                title={`Ausgangshaarfarbe: ${baseHairHex} (${baseHairLevelName})`}
+              />
+            </span>
+            <div
+              className="w-14 h-14 rounded-2xl border-2 border-emerald-400/40 shadow-lg mx-auto"
               style={{ backgroundColor: estimatedResultHex }}
             />
-            <div className="text-xs font-mono font-bold text-slate-200">{estimatedResultHex.toUpperCase()}</div>
+            <span className="text-[11px] font-mono font-bold text-emerald-300 block truncate" title={baseHairLevelName}>
+              {estimatedResultHex.toUpperCase()}
+            </span>
           </div>
         </div>
 
-        {!isTargetAchievable && (
-          <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs space-y-1">
-            <div className="flex items-center gap-1.5 font-bold">
-              <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
-              <span>Wunschfarbe nicht vollständig erreichbar!</span>
-            </div>
-            <p>
-              Die Wunschfarbe ist heller als die Ausgangshaarfarbe oder liegt außerhalb des mischbaren Farbraums.
-            </p>
-            {nearestAchievableHex && (
-              <div className="flex items-center gap-2 pt-1 font-mono text-[11px]">
-                <span>Nächstmögliche Farbe:</span>
-                <span
-                  className="w-4 h-4 rounded-md border border-white/20 inline-block"
-                  style={{ backgroundColor: nearestAchievableHex }}
-                />
-                <span>{nearestAchievableHex}</span>
-              </div>
-            )}
-          </div>
-        )}
+        {/* Hinweis zur Ausgangshaarfarbe */}
+        <div className="flex items-start gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 text-[11px] text-slate-300">
+          <Info className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+          <p>
+            <strong>Farbbeispiel:</strong> Direktziehende Haarfarben sind lasierend.
+            Der Untergrund deines Haares (z. B. Gold-/Gelbstich oder dunklere Nuancen) addiert sich optisch zum Ergebnis.
+          </p>
+        </div>
       </div>
 
-      {/* Visual Mixing Bar */}
+      {/* Grafischer Mengenaufteilungs-Mischbalken */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between text-xs font-semibold text-slate-300">
-          <span>Visuelles Mischverhältnis</span>
-          <span>Gesamtmenge: {ingredients.totalGrams} g</span>
+          <span>Grafische Farbaufteilung</span>
+          <span className="font-mono text-cyan-300">Gesamt: {ingredients.totalGrams} ml/g</span>
         </div>
 
         <div className="h-5 w-full rounded-full overflow-hidden flex bg-slate-950 border border-slate-800 shadow-inner p-0.5">
@@ -195,190 +274,116 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
             <div
               className="h-full bg-blue-500 transition-all rounded-l-full"
               style={{ width: `${ingredients.cyanPercent}%` }}
-              title={`Blau: ${ingredients.cyanGrams}g (${ingredients.cyanPercent}%)`}
+              title={`Blau: ${ingredients.cyanGrams} g (${ingredients.cyanPercent}%)`}
             />
           )}
           {ingredients.magentaGrams > 0 && (
             <div
               className="h-full bg-rose-500 transition-all"
               style={{ width: `${ingredients.magentaPercent}%` }}
-              title={`Rot-Pink: ${ingredients.magentaGrams}g (${ingredients.magentaPercent}%)`}
+              title={`Rot-Pink: ${ingredients.magentaGrams} g (${ingredients.magentaPercent}%)`}
             />
           )}
           {ingredients.yellowGrams > 0 && (
             <div
               className="h-full bg-amber-400 transition-all"
               style={{ width: `${ingredients.yellowPercent}%` }}
-              title={`Gelb: ${ingredients.yellowGrams}g (${ingredients.yellowPercent}%)`}
+              title={`Gelb: ${ingredients.yellowGrams} g (${ingredients.yellowPercent}%)`}
             />
           )}
           {ingredients.conditionerGrams > 0 && (
-            /* Pure white swatch bar with subtle border, no purple! */
+            /* Reines Weiß (#FFFFFF) mit feiner Umrandung – kein Lila! */
             <div
-              className="h-full bg-white border border-slate-300 dark:border-slate-600 transition-all rounded-r-full"
+              className="h-full bg-white border border-slate-400 dark:border-slate-500 transition-all rounded-r-full"
               style={{ width: `${ingredients.conditionerPercent}%` }}
-              title={`Weiße Spülung: ${ingredients.conditionerGrams}g (${ingredients.conditionerPercent}%)`}
+              title={`Weiße Spülung: ${ingredients.conditionerGrams} g (${ingredients.conditionerPercent}%)`}
             />
           )}
         </div>
       </div>
 
-      {/* So viel brauchst du (Recipe Card Table) */}
+      {/* Zutaten & Löffelmaße (Teelöffel / Esslöffel) */}
       <div className="bg-slate-950/70 border border-slate-800 rounded-2xl overflow-hidden">
         <div className="px-4 py-2.5 bg-slate-800/60 border-b border-slate-800 flex items-center justify-between">
-          <span className="text-xs font-bold text-slate-200">So viel brauchst du</span>
-          <span className="text-[11px] text-slate-400">Exakte Waagen-Gramm & Löffel</span>
+          <span className="text-xs font-bold text-slate-200">Rezeptur-Zutaten</span>
+          <span className="text-[11px] text-cyan-300 font-semibold">Teelöffel & Esslöffel</span>
         </div>
 
-        <table className="w-full text-left border-collapse text-xs sm:text-sm">
-          <thead>
-            <tr className="bg-slate-900/60 text-slate-400 font-semibold border-b border-slate-800 text-[11px]">
-              <th className="p-3">Zutat</th>
-              <th className="p-3 text-right">Menge (g)</th>
-              <th className="p-3 text-right">Anteil (%)</th>
-              <th className="p-3 text-right">Volumen (ml)</th>
-              <th className="p-3 text-right">Löffel / Dosierung</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-800 text-slate-200">
-            {/* Blau */}
-            <tr className="hover:bg-slate-900/40">
-              <td className="p-3 flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-blue-500 shadow-sm shrink-0" />
-                <span className="font-medium text-blue-200">Blau: {cyanPigment.name}</span>
-              </td>
-              <td className="p-3 text-right font-mono font-bold text-blue-300">{ingredients.cyanGrams} g</td>
-              <td className="p-3 text-right font-mono text-slate-400">{ingredients.cyanPercent}%</td>
-              <td className="p-3 text-right font-mono text-slate-400">
-                {ingredients.cyanMl !== undefined ? `${ingredients.cyanMl} ml` : '—'}
-              </td>
-              <td className="p-3 text-right font-mono text-slate-300">
-                <span className={cyanTsp.recommendScaleOrSyringe ? 'text-cyan-300 font-semibold' : ''}>
-                  {cyanTsp.teaspoonDisplay}
-                </span>
-              </td>
-            </tr>
+        <div className="divide-y divide-slate-800 text-xs sm:text-sm">
+          {/* Blau */}
+          <div className="p-3 flex items-center justify-between hover:bg-slate-900/40 transition-colors">
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-blue-500 shadow-sm shrink-0" />
+              <span className="font-semibold text-blue-200">Blau</span>
+            </div>
+            <div className="flex items-center gap-4 text-right">
+              <span className="font-bold text-blue-300">{cyanTsp.teaspoonDisplay}</span>
+              <span className="font-mono text-slate-400 w-16 text-right">{ingredients.cyanGrams} g</span>
+              <span className="font-mono text-slate-500 text-xs w-12 text-right">{ingredients.cyanPercent}%</span>
+            </div>
+          </div>
 
-            {/* Rot-Pink */}
-            <tr className="hover:bg-slate-900/40">
-              <td className="p-3 flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-rose-500 shadow-sm shrink-0" />
-                <span className="font-medium text-rose-200">Rot-Pink: {magentaPigment.name}</span>
-              </td>
-              <td className="p-3 text-right font-mono font-bold text-rose-300">{ingredients.magentaGrams} g</td>
-              <td className="p-3 text-right font-mono text-slate-400">{ingredients.magentaPercent}%</td>
-              <td className="p-3 text-right font-mono text-slate-400">
-                {ingredients.magentaMl !== undefined ? `${ingredients.magentaMl} ml` : '—'}
-              </td>
-              <td className="p-3 text-right font-mono text-slate-300">
-                <span className={magentaTsp.recommendScaleOrSyringe ? 'text-rose-300 font-semibold' : ''}>
-                  {magentaTsp.teaspoonDisplay}
-                </span>
-              </td>
-            </tr>
+          {/* Rot-Pink */}
+          <div className="p-3 flex items-center justify-between hover:bg-slate-900/40 transition-colors">
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-rose-500 shadow-sm shrink-0" />
+              <span className="font-semibold text-rose-200">Rot / Pink</span>
+            </div>
+            <div className="flex items-center gap-4 text-right">
+              <span className="font-bold text-rose-300">{magentaTsp.teaspoonDisplay}</span>
+              <span className="font-mono text-slate-400 w-16 text-right">{ingredients.magentaGrams} g</span>
+              <span className="font-mono text-slate-500 text-xs w-12 text-right">{ingredients.magentaPercent}%</span>
+            </div>
+          </div>
 
-            {/* Gelb */}
-            <tr className="hover:bg-slate-900/40">
-              <td className="p-3 flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-amber-400 shadow-sm shrink-0" />
-                <span className="font-medium text-amber-200">Gelb: {yellowPigment.name}</span>
-              </td>
-              <td className="p-3 text-right font-mono font-bold text-amber-300">{ingredients.yellowGrams} g</td>
-              <td className="p-3 text-right font-mono text-slate-400">{ingredients.yellowPercent}%</td>
-              <td className="p-3 text-right font-mono text-slate-400">
-                {ingredients.yellowMl !== undefined ? `${ingredients.yellowMl} ml` : '—'}
-              </td>
-              <td className="p-3 text-right font-mono text-slate-300">
-                <span className={yellowTsp.recommendScaleOrSyringe ? 'text-amber-300 font-semibold' : ''}>
-                  {yellowTsp.teaspoonDisplay}
-                </span>
-              </td>
-            </tr>
+          {/* Gelb */}
+          <div className="p-3 flex items-center justify-between hover:bg-slate-900/40 transition-colors">
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-amber-400 shadow-sm shrink-0" />
+              <span className="font-semibold text-amber-200">Gelb</span>
+            </div>
+            <div className="flex items-center gap-4 text-right">
+              <span className="font-bold text-amber-300">{yellowTsp.teaspoonDisplay}</span>
+              <span className="font-mono text-slate-400 w-16 text-right">{ingredients.yellowGrams} g</span>
+              <span className="font-mono text-slate-500 text-xs w-12 text-right">{ingredients.yellowPercent}%</span>
+            </div>
+          </div>
 
-            {/* Weiße Spülung (#FFFFFF with border) */}
-            <tr className="hover:bg-slate-900/40">
-              <td className="p-3 flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-white border border-slate-400 shadow-sm shrink-0" />
-                <span className="font-medium text-slate-200">{conditioner?.name || 'Weiße Spülung'}</span>
-              </td>
-              <td className="p-3 text-right font-mono font-bold text-white">{ingredients.conditionerGrams} g</td>
-              <td className="p-3 text-right font-mono text-slate-400">{ingredients.conditionerPercent}%</td>
-              <td className="p-3 text-right font-mono text-slate-400">
-                {ingredients.conditionerMl !== undefined ? `${ingredients.conditionerMl} ml` : '—'}
-              </td>
-              <td className="p-3 text-right font-mono text-white font-semibold">
+          {/* Weiße Spülung (Pure white #FFFFFF with border) */}
+          <div className="p-3 flex items-center justify-between hover:bg-slate-900/40 transition-colors bg-white/5">
+            <div className="flex items-center gap-2">
+              <span className="w-3.5 h-3.5 rounded-full bg-white border border-slate-400 shadow-sm shrink-0" />
+              <span className="font-semibold text-white">Weiße Spülung (#FFFFFF)</span>
+            </div>
+            <div className="flex items-center gap-4 text-right">
+              <span className="font-bold text-white bg-slate-800 px-2 py-0.5 rounded-md border border-slate-700">
                 {condTsp.teaspoonDisplay}
-              </td>
-            </tr>
-
-            {/* Total */}
-            <tr className="bg-slate-900/90 font-bold text-white border-t border-slate-700">
-              <td className="p-3">Summe (Gesamtmasse)</td>
-              <td className="p-3 text-right font-mono text-cyan-300 text-base">{ingredients.totalGrams} g</td>
-              <td className="p-3 text-right font-mono">100.0%</td>
-              <td className="p-3 text-right font-mono text-xs text-slate-400">
-                {ingredients.cyanMl !== undefined || ingredients.magentaMl !== undefined ? 'Dichtebasiert' : '—'}
-              </td>
-              <td className="p-3 text-right font-mono text-xs text-slate-400">
-                ca. {condTsp.teaspoonDisplay}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-
-        {/* Measuring Tip */}
-        <div className="p-3 bg-slate-900/50 border-t border-slate-800 text-[11px] text-slate-400 flex items-start gap-2">
-          <Scale className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
-          <div>
-            <strong>Hinweis zu Teelöffeln & Millilitern:</strong> 1 TL entspricht ca. 5 ml (½ TL = 2,5 ml, ¼ TL = 1,25 ml, ⅛ TL = 0,625 ml).
-            Bei kleinen Pigmentmengen unter 1 g bzw. 1 ml raten wir dringend zu einer <strong>Dosierspritze</strong> oder <strong>Feinwaage</strong>, da Küchenlöffel für Kleinstmengen zu ungenau sind.
-          </div>
-        </div>
-      </div>
-
-      {/* Collapsible Info Section: Technical Information */}
-      <div className="bg-slate-950/70 border border-slate-800 rounded-2xl overflow-hidden">
-        <button
-          onClick={() => setShowTechnicalDetails(!showTechnicalDetails)}
-          className="w-full px-4 py-3 flex items-center justify-between text-xs font-semibold text-slate-300 hover:text-white transition-colors"
-        >
-          <span>Details & Farbwissenschaft aufklappen</span>
-          {showTechnicalDetails ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-        </button>
-
-        {showTechnicalDetails && (
-          <div className="p-4 pt-1 border-t border-slate-800 text-xs text-slate-400 space-y-2.5">
-            <div className="flex justify-between py-1 border-b border-slate-800/60">
-              <span>Wahrnehmungsabstand (Delta E):</span>
-              <span className="font-mono text-cyan-300 font-bold">{deltaEToTarget}</span>
-            </div>
-            <div className="flex justify-between py-1 border-b border-slate-800/60">
-              <span>Berechnungsmodus:</span>
-              <span className="font-semibold text-slate-200">
-                {mode === 'calibrated' ? 'Kalibriert (mit empirischen Teststrähnen)' : 'Experimenteller Demo-Modus'}
               </span>
+              <span className="font-mono text-slate-200 w-16 text-right font-bold">{ingredients.conditionerGrams} g</span>
+              <span className="font-mono text-slate-400 text-xs w-12 text-right">{ingredients.conditionerPercent}%</span>
             </div>
-            <div className="flex justify-between py-1 border-b border-slate-800/60">
-              <span>Konfidenzwert:</span>
-              <span className="font-mono text-slate-200">{confidenceScore}%</span>
-            </div>
-            <p className="text-[11px] text-slate-500 italic pt-1">
-              Die optische Schätzung basiert auf einem subtraktiven Transmissions- und Absorptionsmodell für direktziehende Farbpigmente und berücksichtigt die Helligkeit des Haarsubstrats.
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* Dino Mascot Advisory */}
-      <div className="flex flex-col sm:flex-row items-center gap-4 bg-slate-950/80 p-4 rounded-2xl border border-slate-800">
-        <DinoMascot size="sm" expression={isDemoMode ? 'thinking' : 'happy'} />
-        <div className="text-xs text-slate-300 space-y-1">
-          <div className="font-bold text-slate-100">Dinos Laborhinweis:</div>
-          <p>{disclaimer}</p>
-          <div className="text-[11px] text-slate-400 italic">
-            * Milliliter und Teelöffel werden nur bei hinterlegten Dichtewerten berechnet. Keine pauschale Gleichsetzung von 1g = 1ml ohne Produktdaten.
           </div>
         </div>
+      </div>
+
+      {/* Einfaches Mischverhältnis */}
+      <div className="bg-slate-950/80 p-3.5 rounded-2xl border border-cyan-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-cyan-400" />
+          <span className="text-xs font-bold text-slate-300">Einfaches Mischverhältnis:</span>
+        </div>
+        <div className="text-xs font-bold font-mono text-cyan-300 bg-cyan-950/60 px-3 py-1 rounded-xl border border-cyan-500/30">
+          {simpleRatio}
+        </div>
+      </div>
+
+      {/* Haushaltsmaß- & Feinwaagen-Hinweis */}
+      <div className="flex items-start gap-2 bg-slate-950/60 p-3 rounded-2xl border border-slate-800 text-[11px] text-slate-400">
+        <Scale className="w-3.5 h-3.5 text-cyan-400 shrink-0 mt-0.5" />
+        <p>
+          <strong>Haushaltsmaße:</strong> 1 Esslöffel (EL) = 15 ml, 1 Teelöffel (TL) = 5 ml (½ TL = 2,5 ml, ¼ TL = 1,25 ml).
+          Für feinste Nuancen unter 1 ml empfehlen wir eine Dosierspritze oder Feinwaage (0,01 g).
+        </p>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 /**
  * Dino Color Lab - Einheiten- und Umrechnungslogik
- * Alltagstaugliche Maßeinheiten, Teelöffel-Umrechnung und Skalierung.
+ * Alltagstaugliche Maßeinheiten, Teelöffel-/Esslöffel-Umrechnung, Mischverhältnisse und Skalierung.
  */
 
 import type { IngredientBreakdown, PigmentProfile, ConditionerProfile } from '../types';
@@ -11,7 +11,7 @@ export interface TeaspoonResult {
   fractionValue: number; // in ml of the closest spoon fraction
   diffMl: number; // difference in ml
   accuracyDescription: string;
-  isAccurate: boolean; // within 0.1 ml
+  isAccurate: boolean;
   recommendation: string;
   recommendScaleOrSyringe: boolean;
 }
@@ -22,31 +22,37 @@ export interface VolumeDisplayInfo {
   sourceText: string;
 }
 
-export const TEST_STRAND_VOLUME_PRESETS = [
-  { id: '2.5', label: '2,5 ml', ml: 2.5, defaultGrams: 2.5, description: 'Sehr sparsame kleine Strähne (1 cm)' },
-  { id: '5', label: '5 ml (Standard)', ml: 5.0, defaultGrams: 5.0, isDefault: true, description: 'Standard-Menge für 1–2 cm Strähne' },
-  { id: '10', label: '10 ml', ml: 10.0, defaultGrams: 10.0, description: 'Für längere oder kräftigere Strähnen' },
-  { id: '15', label: '15 ml', ml: 15.0, defaultGrams: 15.0, description: 'Großzügige Testpartie' },
-  { id: '25', label: '25 ml', ml: 25.0, defaultGrams: 25.0, description: 'Sehr breite Strähne / halber Pony' }
+/**
+ * Portionsgrößen für kleine Mengen (Pony, Sidecut, Strähne)
+ * 2,5 ml | 5 ml (Standard) | 10 ml | 15 ml | 20 ml | Freie Eingabe
+ */
+export const SMALL_PORTION_VOLUME_PRESETS = [
+  { id: '2.5', label: '2,5 ml', ml: 2.5, defaultGrams: 2.5, description: 'Sehr kleine Menge (z. B. feine Strähne)' },
+  { id: '5', label: '5 ml (Standard)', ml: 5.0, defaultGrams: 5.0, isDefault: true, description: 'Standard-Menge für Pony oder Sidecut' },
+  { id: '10', label: '10 ml', ml: 10.0, defaultGrams: 10.0, description: 'Dichterer Pony oder breiterer Sidecut' },
+  { id: '15', label: '15 ml', ml: 15.0, defaultGrams: 15.0, description: 'Pony + Seitenpartien' },
+  { id: '20', label: '20 ml', ml: 20.0, defaultGrams: 20.0, description: 'Ausführliche Teilpartie / Kurzhaardetails' }
 ] as const;
 
+// Abwärtskompatibler Alias
+export const TEST_STRAND_VOLUME_PRESETS = SMALL_PORTION_VOLUME_PRESETS;
+
 /**
- * Wandelt ein Volumen in alltagstaugliche Teelöffel-Einheiten um.
+ * Wandelt ein Volumen in alltagstaugliche Teelöffel- oder Esslöffel-Einheiten um.
  * Basis:
+ * - 1 EL = 15 ml (= 3 TL) -> besonders für weiße Spülung
  * - 1 TL = 5 ml
  * - ½ TL = 2,5 ml
  * - ¼ TL = 1,25 ml
  * - ⅛ TL = 0,625 ml
- *
- * Wenn keine Dichte vorliegt, wird keine Teelöffelumrechnung aus Gramm vorgenommen.
  */
 export function calculateTeaspoonAmount(
   volumeMl: number | undefined,
   grams: number,
-  densityGPerMl?: number
+  densityGPerMl?: number,
+  isConditioner: boolean = false
 ): TeaspoonResult {
-  // Wenn kein Dichtewert hinterlegt ist und kein Volumen bekannt ist:
-  // Keine scheinexakten Gramm-zu-Löffel-Werte!
+  // Wenn kein Dichtewert hinterlegt ist und kein Volumen bekannt ist
   if (volumeMl === undefined && (densityGPerMl === undefined || densityGPerMl <= 0)) {
     return {
       canMeasureTeaspoon: false,
@@ -55,7 +61,7 @@ export function calculateTeaspoonAmount(
       diffMl: 0,
       accuracyDescription: 'Dichte unbekannt',
       isAccurate: false,
-      recommendation: `Für dieses Produkt ist kein Dichtewert hinterlegt. Bitte ausschließlich mit der Feinwaage (${grams} g) abwiegen, um Messfehler zu vermeiden.`,
+      recommendation: `Für dieses Produkt ist kein Dichtewert hinterlegt. Bitte mit der Feinwaage (${grams} g) abwiegen.`,
       recommendScaleOrSyringe: true
     };
   }
@@ -65,7 +71,7 @@ export function calculateTeaspoonAmount(
   if (ml <= 0.001) {
     return {
       canMeasureTeaspoon: false,
-      teaspoonDisplay: '0 TL',
+      teaspoonDisplay: '0',
       fractionValue: 0,
       diffMl: 0,
       accuracyDescription: 'Keine Zugabe',
@@ -75,27 +81,77 @@ export function calculateTeaspoonAmount(
     };
   }
 
-  // Bei Mengen unter 0,625 ml (⅛ TL) ist ein Küchenteelöffel völlig ungeeignet
+  // Für Spülung bei größeren Mengen ab 15 ml Esslöffel (1 EL = 15 ml)
+  if (isConditioner && ml >= 13.5) {
+    if (ml >= 13.5 && ml < 17.5) {
+      return {
+        canMeasureTeaspoon: true,
+        teaspoonDisplay: '1 EL',
+        fractionValue: 15,
+        diffMl: Math.round((ml - 15) * 100) / 100,
+        accuracyDescription: '1 gestrichener Esslöffel (15 ml)',
+        isAccurate: Math.abs(ml - 15) <= 1.0,
+        recommendation: '1 gestrichener Esslöffel Spülung.',
+        recommendScaleOrSyringe: false
+      };
+    }
+    if (ml >= 17.5 && ml < 22.5) {
+      return {
+        canMeasureTeaspoon: true,
+        teaspoonDisplay: '1 EL + 1 TL',
+        fractionValue: 20,
+        diffMl: Math.round((ml - 20) * 100) / 100,
+        accuracyDescription: '1 EL (15 ml) + 1 TL (5 ml) = 20 ml',
+        isAccurate: Math.abs(ml - 20) <= 1.0,
+        recommendation: '1 Esslöffel plus 1 Teelöffel Spülung.',
+        recommendScaleOrSyringe: false
+      };
+    }
+    if (ml >= 22.5 && ml < 27.5) {
+      return {
+        canMeasureTeaspoon: true,
+        teaspoonDisplay: 'ca. 1 ½ EL',
+        fractionValue: 22.5,
+        diffMl: Math.round((ml - 22.5) * 100) / 100,
+        accuracyDescription: 'ca. 1 ½ Esslöffel',
+        isAccurate: Math.abs(ml - 22.5) <= 1.5,
+        recommendation: '1 ½ Esslöffel Spülung.',
+        recommendScaleOrSyringe: false
+      };
+    }
+    const tbsp = Math.round(ml / 15);
+    return {
+      canMeasureTeaspoon: true,
+      teaspoonDisplay: `${tbsp} EL`,
+      fractionValue: tbsp * 15,
+      diffMl: Math.round((ml - tbsp * 15) * 100) / 100,
+      accuracyDescription: `${tbsp} Esslöffel (${tbsp * 15} ml)`,
+      isAccurate: Math.abs(ml - tbsp * 15) <= 2.0,
+      recommendation: `${tbsp} Esslöffel Spülung.`,
+      recommendScaleOrSyringe: false
+    };
+  }
+
+  // Bei Mengen unter 0,625 ml (⅛ TL)
   if (ml < 0.625) {
     return {
       canMeasureTeaspoon: false,
       teaspoonDisplay: '< ⅛ TL',
       fractionValue: 0.625,
       diffMl: Math.round((0.625 - ml) * 1000) / 1000,
-      accuracyDescription: 'Zu gering für Teelöffel',
+      accuracyDescription: 'Kleinstmenge (< ⅛ TL)',
       isAccurate: false,
       recommendation: `Kleinstmenge (${ml.toFixed(2)} ml): Teelöffel sind viel zu grob! Bitte eine 1 ml-Dosierspritze oder eine 0,01g-Feinwaage nutzen.`,
       recommendScaleOrSyringe: true
     };
   }
 
-  // Multiplikator für ⅛ TL = 0,625 ml
+  // ⅛ TL Vielfache (0.625 ml)
   const eighths = Math.round(ml / 0.625);
   const approxMl = eighths * 0.625;
   const diffMl = Math.round((ml - approxMl) * 100) / 100;
   const absDiff = Math.abs(diffMl);
-
-  const isAccurate = absDiff <= 0.1;
+  const isAccurate = absDiff <= 0.15;
 
   let fractionText = '';
   const wholeTsp = Math.floor(eighths / 8);
@@ -139,21 +195,14 @@ export function calculateTeaspoonAmount(
     fractionText = remainderText || '⅛ TL';
   }
 
-  let accuracyDescription = 'Exakt (±0,05 ml)';
-  if (absDiff > 0.05 && absDiff <= 0.25) {
+  let accuracyDescription = 'Exakt passend';
+  if (absDiff > 0.05 && absDiff <= 0.3) {
     accuracyDescription = `Gute Näherung (${diffMl > 0 ? '+' : ''}${diffMl.toFixed(1)} ml)`;
-  } else if (absDiff > 0.25) {
+  } else if (absDiff > 0.3) {
     accuracyDescription = `Grobe Schätzung (${diffMl > 0 ? '+' : ''}${diffMl.toFixed(1)} ml)`;
   }
 
   const recommendScaleOrSyringe = ml < 2.5;
-
-  let recommendation = '';
-  if (ml < 2.5) {
-    recommendation = 'Kleine Menge: Für beste Farbgenauigkeit eine Dosierspritze (1–2 ml) oder Feinwaage nutzen.';
-  } else {
-    recommendation = 'Löffel mit Messerrücken glatt abstreichen. Für exakte Reproduzierbarkeit Waage bevorzugen.';
-  }
 
   return {
     canMeasureTeaspoon: true,
@@ -162,9 +211,55 @@ export function calculateTeaspoonAmount(
     diffMl,
     accuracyDescription,
     isAccurate,
-    recommendation,
+    recommendation: ml < 2.5 ? 'Dosierspritze (1–2 ml) oder Feinwaage empfohlen.' : 'Löffel mit Messerrücken glatt abstreifen.',
     recommendScaleOrSyringe
   };
+}
+
+/**
+ * Hilfsfunktion: Gibt die Teelöffel-Schätzung für Farbpigmente zurück
+ */
+export function formatVolumeWithSpoonEstimate(grams: number, densityGPerMl?: number): string {
+  const res = calculateTeaspoonAmount(undefined, grams, densityGPerMl || 1.0, false);
+  return res.teaspoonDisplay;
+}
+
+/**
+ * Hilfsfunktion: Gibt die Esslöffel/Teelöffel-Schätzung für Spülung zurück
+ */
+export function formatConditionerSpoonEstimate(grams: number, densityGPerMl?: number): string {
+  const res = calculateTeaspoonAmount(undefined, grams, densityGPerMl || 1.0, true);
+  return res.teaspoonDisplay;
+}
+
+/**
+ * Berechnet ein einfaches, verständliches Mischverhältnis (z. B. "1 Teil Blau : 2 Teile Spülung")
+ */
+export function calculateSimpleRatio(
+  cyanG: number,
+  magentaG: number,
+  yellowG: number,
+  conditionerG: number
+): string {
+  const parts: { name: string; amount: number }[] = [];
+  if (cyanG > 0.01) parts.push({ name: 'Blau', amount: cyanG });
+  if (magentaG > 0.01) parts.push({ name: 'Rot/Pink', amount: magentaG });
+  if (yellowG > 0.01) parts.push({ name: 'Gelb', amount: yellowG });
+  if (conditionerG > 0.01) parts.push({ name: 'Weiße Spülung', amount: conditionerG });
+
+  if (parts.length === 0) return '100% Farbpigmente';
+
+  // Finde kleinsten Farbteil
+  const minAmount = Math.min(...parts.map((p) => p.amount));
+  if (minAmount <= 0.001) return 'Reine Farbe';
+
+  const ratioStrings = parts.map((p) => {
+    const ratioVal = Math.round((p.amount / minAmount) * 2) / 2; // runde auf 0.5
+    const ratioFormatted = ratioVal % 1 === 0 ? ratioVal.toString() : ratioVal.toFixed(1);
+    return `${ratioFormatted} ${ratioVal === 1 ? 'Teil' : 'Teile'} ${p.name}`;
+  });
+
+  return ratioStrings.join(' + ');
 }
 
 /**
@@ -188,7 +283,7 @@ export function getVolumeDisplay(
     return {
       ml: fallbackVolumeMl,
       isApproximate: true,
-      sourceText: 'Näherungswert (ohne spezifische Produktdichte)'
+      sourceText: 'Näherungswert (ca. 1,0 g = 1,0 ml)'
     };
   }
 
@@ -200,7 +295,7 @@ export function getVolumeDisplay(
 }
 
 /**
- * Skaliert eine Rezeptur automatisch auf eine neue Gesamtmasse (z.B. von 5g Teststrähne auf 100g Vollanwendung)
+ * Skaliert eine Rezeptur automatisch auf eine neue Gesamtmasse
  */
 export function scaleRecipeIngredients(
   source: IngredientBreakdown,
@@ -221,12 +316,10 @@ export function scaleRecipeIngredients(
   let yelG = roundVal(source.yellowGrams * factor);
   let condG = roundVal(source.conditionerGrams * factor);
 
-  // Exakte Summe sicherstellen
   const currentSum = roundVal(cyanG + magG + yelG + condG);
   const diff = roundVal(targetGrams - currentSum);
 
   if (Math.abs(diff) > 0.0001) {
-    // Differenz auf die größte Zutat anwenden
     const items = [
       { key: 'cond', val: condG },
       { key: 'cyan', val: cyanG },

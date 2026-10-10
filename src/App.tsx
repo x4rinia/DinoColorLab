@@ -159,18 +159,8 @@ export function App() {
             onSaveRecipe={handleSaveRecipe}
             onCreateStrandTest={handleSaveStrandTest}
             onUpdateSettings={handleUpdateSettings}
-            onPrintRecipe={(calcRes) => {
-              setStandalonePrintRecipe({
-                title: `Farblabor Rezept (${calcRes.ingredients.totalGrams}g)`,
-                targetHex: calcRes.ingredients ? '#38bdf8' : '#38bdf8',
-                totalBatchGrams: calcRes.ingredients.totalGrams,
-                ingredients: calcRes.ingredients,
-                cyanPigmentId: pigments[0]?.id || 1,
-                magentaPigmentId: pigments[1]?.id || 2,
-                yellowPigmentId: pigments[2]?.id || 3,
-                conditionerId: conditioners[0]?.id || 1,
-                createdAt: new Date().toISOString()
-              });
+            onPrintRecipe={(recipe) => {
+              setStandalonePrintRecipe(recipe);
             }}
           />
         )}

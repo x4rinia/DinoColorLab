@@ -2,7 +2,8 @@ import { describe, it, expect } from 'vitest';
 import {
   calculateTeaspoonAmount,
   getVolumeDisplay,
-  scaleRecipeIngredients
+  scaleRecipeIngredients,
+  calculateSimpleRatio
 } from './unitConversions';
 import type { IngredientBreakdown } from '../types';
 
@@ -109,5 +110,18 @@ describe('Unit Conversions & Measurement Engine', () => {
     expect(scaled100g.totalGrams).toBe(100);
     expect(scaled100g.cyanGrams + scaled100g.magentaGrams + scaled100g.yellowGrams + scaled100g.conditionerGrams).toBe(100);
     expect(scaled100g.cyanGrams).toBe(6.0);
+  });
+
+  it('correctly maps 15 ml conditioner to 1 EL and 20 ml to 1 EL + 1 TL', () => {
+    const res15 = calculateTeaspoonAmount(15.0, 15.0, 1.0, true);
+    expect(res15.teaspoonDisplay).toBe('1 EL');
+
+    const res20 = calculateTeaspoonAmount(20.0, 20.0, 1.0, true);
+    expect(res20.teaspoonDisplay).toBe('1 EL + 1 TL');
+  });
+
+  it('calculates a simple understandable mixing ratio', () => {
+    const ratio = calculateSimpleRatio(0.5, 0.5, 0.0, 4.0);
+    expect(ratio).toBe('1 Teil Blau + 1 Teil Rot/Pink + 8 Teile Weiße Spülung');
   });
 });

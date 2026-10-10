@@ -112,7 +112,7 @@ describe('Dino Color Lab Calculation Engine', () => {
 
     const result = calculateRecipe(input, demoBlue, demoRedPink, demoYellow);
     expect(result.mode).toBe('demo_experimental');
-    expect(result.disclaimer).toContain('Achtung: Experimenteller Demo-Modus!');
+    expect(result.disclaimer).toContain('Geschätztes Farbergebnis');
   });
 
   it('calculates ml when density is present, and leaves ml undefined when density is absent', () => {

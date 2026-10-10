@@ -13,10 +13,9 @@ import { BaseHairSelector } from './BaseHairSelector';
 import { BatchSettings } from './BatchSettings';
 import { RecipeResultCard } from './RecipeResultCard';
 import { FarbmischungsAnsicht } from './FarbmischungsAnsicht';
-import { TeststraehnenModusView } from './TeststraehnenModusView';
 import { DinoMascot } from '../common/DinoMascot';
 import confetti from 'canvas-confetti';
-import { Check, BookmarkPlus, X, TestTube2, Layers } from 'lucide-react';
+import { BookmarkPlus, X, Check } from 'lucide-react';
 
 interface FarblaborProps {
   pigments: PigmentProfile[];
@@ -35,26 +34,30 @@ export const Farblabor: React.FC<FarblaborProps> = ({
   strandTests,
   settings,
   onSaveRecipe,
-  onCreateStrandTest,
+  onCreateStrandTest: _onCreateStrandTest,
   onUpdateSettings,
   onPrintRecipe
 }) => {
-  const [labMode, setLabMode] = useState<'teststrand' | 'standard'>('teststrand');
   const [targetHex, setTargetHex] = useState<string>('#3b82f6');
-  // Default to 5g (5ml Standard) for test strand optimization
+  // Default to 5 ml Standard for small portions (Pony, Sidecut, Strähne)
   const [totalBatchGrams, setTotalBatchGrams] = useState<number>(settings.defaultBatchGrams || 5);
   const [maxConditionerRatioPercent, setMaxConditionerRatioPercent] = useState<number>(80);
 
-  const defaultCyan = pigments.find((p) => p.colorGroup === 'cyan') || pigments[0];
-  const defaultMagenta = pigments.find((p) => p.colorGroup === 'magenta') || pigments[0];
-  const defaultYellow = pigments.find((p) => p.colorGroup === 'yellow') || pigments[0];
-  const defaultConditioner = conditioners[0];
-
-  const [selectedCyanId, setSelectedCyanId] = useState<number>(defaultCyan?.id || 1);
-  const [selectedMagentaId, setSelectedMagentaId] = useState<number>(defaultMagenta?.id || 2);
-  const [selectedYellowId, setSelectedYellowId] = useState<number>(defaultYellow?.id || 3);
-  const [selectedConditionerId, setSelectedConditionerId] = useState<number | undefined>(
-    defaultConditioner?.id || 1
+  const cyanPigment = useMemo(
+    () => pigments.find((p) => p.colorGroup === 'cyan') || pigments[0],
+    [pigments]
+  );
+  const magentaPigment = useMemo(
+    () => pigments.find((p) => p.colorGroup === 'magenta') || pigments[1] || pigments[0],
+    [pigments]
+  );
+  const yellowPigment = useMemo(
+    () => pigments.find((p) => p.colorGroup === 'yellow') || pigments[2] || pigments[0],
+    [pigments]
+  );
+  const conditioner = useMemo(
+    () => conditioners[0],
+    [conditioners]
   );
 
   const [baseHairColor, setBaseHairColor] = useState<CustomBaseHairColor>({
@@ -67,22 +70,6 @@ export const Farblabor: React.FC<FarblaborProps> = ({
   const [recipeDescription, setRecipeDescription] = useState('');
   const [recipeTags, setRecipeTags] = useState('Teststrähne, Pastell');
 
-  const cyanPigment = useMemo(
-    () => pigments.find((p) => p.id === selectedCyanId) || defaultCyan,
-    [pigments, selectedCyanId, defaultCyan]
-  );
-  const magentaPigment = useMemo(
-    () => pigments.find((p) => p.id === selectedMagentaId) || defaultMagenta,
-    [pigments, selectedMagentaId, defaultMagenta]
-  );
-  const yellowPigment = useMemo(
-    () => pigments.find((p) => p.id === selectedYellowId) || defaultYellow,
-    [pigments, selectedYellowId, defaultYellow]
-  );
-  const conditioner = useMemo(
-    () => conditioners.find((c) => c.id === selectedConditionerId) || defaultConditioner,
-    [conditioners, selectedConditionerId, defaultConditioner]
-  );
 
   const calculationResult = useMemo(() => {
     return calculateRecipe(
@@ -165,7 +152,7 @@ export const Farblabor: React.FC<FarblaborProps> = ({
 
   return (
     <div className="space-y-6 pb-12">
-      {/* Welcome Banner with Friendly Terms & Prominent Mode Selector */}
+      {/* Welcome Banner: Clear Focus on Wunschfarbe & Portionen für Pony / Sidecut */}
       <div className="bg-gradient-to-r from-blue-950/80 via-slate-900 to-rose-950/80 border border-slate-800 rounded-3xl p-6 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="space-y-2.5 text-center md:text-left">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-300 text-xs font-semibold border border-cyan-500/30">
@@ -175,50 +162,15 @@ export const Farblabor: React.FC<FarblaborProps> = ({
             Haarfarben-Mischlabor für direktziehende Pigmente
           </h2>
           <p className="text-xs sm:text-sm text-slate-300 max-w-xl">
-            Wähle deine <strong>Wunschfarbe</strong>, dosiere <strong>Blau</strong>,{' '}
-            <strong>Rot-Pink</strong> und <strong>Gelb</strong> grammgenau und mische deine
-            individuelle Nuance mit <strong>weißer Spülung</strong>.
+            Wähle deine <strong>Wunschfarbe</strong>, stimme Pigmente &amp; Spülungsanteil ab und erhalte sofort
+            eine druckfertige <strong>automatische Rezeptkarte mit Löffelmaßen</strong> – ideal für sparsame Portionen (Pony, Sidecut oder einzelne Strähnen).
           </p>
-
-          {/* Mode Selector Tabs */}
-          <div className="pt-2 flex items-center justify-center md:justify-start gap-2">
-            <button
-              onClick={() => {
-                setLabMode('teststrand');
-                setTotalBatchGrams(5); // 5ml Standard
-              }}
-              className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs font-bold transition-all shadow-md ${
-                labMode === 'teststrand'
-                  ? 'bg-cyan-500 text-slate-950 border-2 border-cyan-300 shadow-cyan-500/20 scale-105'
-                  : 'bg-slate-800/80 text-slate-300 hover:text-white border border-slate-700'
-              }`}
-            >
-              <TestTube2 className="w-4 h-4" />
-              <span>🧪 Modus: Kleine Teststrähne (5 ml Standard)</span>
-            </button>
-
-            <button
-              onClick={() => setLabMode('standard')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-2xl text-xs font-bold transition-all ${
-                labMode === 'standard'
-                  ? 'bg-cyan-500 text-slate-950 border-2 border-cyan-300 shadow-cyan-500/20 scale-105'
-                  : 'bg-slate-800/80 text-slate-300 hover:text-white border border-slate-700'
-              }`}
-            >
-              <Layers className="w-4 h-4" />
-              <span>Standard-Mischung</span>
-            </button>
-          </div>
         </div>
 
         <DinoMascot
           size="lg"
-          expression={labMode === 'teststrand' ? 'excited' : 'happy'}
-          speechBubble={
-            labMode === 'teststrand'
-              ? 'Im Teststrähnen-Modus! Wir mischen sparsame 5 ml zum Vortesten!'
-              : 'Wähle deine Wunschfarbe und ich berechne das Rezept!'
-          }
+          expression="happy"
+          speechBubble="Wähle deine Wunschfarbe – deine Rezeptkarte mit Löffelmaßen für Pony & Sidecut aktualisiert sich live!"
         />
       </div>
 
@@ -237,24 +189,14 @@ export const Farblabor: React.FC<FarblaborProps> = ({
           <BaseHairSelector value={baseHairColor} onChange={setBaseHairColor} />
 
           <BatchSettings
-            pigments={pigments}
-            conditioners={conditioners}
-            selectedCyanId={cyanPigment.id!}
-            selectedMagentaId={magentaPigment.id!}
-            selectedYellowId={yellowPigment.id!}
-            selectedConditionerId={conditioner?.id}
             totalBatchGrams={totalBatchGrams}
             maxConditionerRatioPercent={maxConditionerRatioPercent}
-            onSelectCyan={setSelectedCyanId}
-            onSelectMagenta={setSelectedMagentaId}
-            onSelectYellow={setSelectedYellowId}
-            onSelectConditioner={setSelectedConditionerId}
             onChangeBatchGrams={setTotalBatchGrams}
             onChangeConditionerRatio={setMaxConditionerRatioPercent}
           />
         </div>
 
-        {/* Right Column: Recipe Result Card & Test Strand View */}
+        {/* Right Column: Automatic Recipe Result Card */}
         <div className="lg:col-span-6 space-y-6 sticky top-24">
           <RecipeResultCard
             result={calculationResult}
@@ -263,45 +205,25 @@ export const Farblabor: React.FC<FarblaborProps> = ({
             yellowPigment={yellowPigment}
             conditioner={conditioner}
             targetHex={targetHex}
+            baseHairHex={baseHairColor.hex}
+            baseHairLevelName={baseHairColor.levelKey}
             onSaveRecipe={() => setShowSaveModal(true)}
-            onCreateStrandTest={() => {
-              onCreateStrandTest({
-                title: `Teststrähne für ${targetHex}`,
-                date: new Date().toISOString().split('T')[0],
-                cyanPigmentId: cyanPigment.id!,
-                magentaPigmentId: magentaPigment.id!,
-                yellowPigmentId: yellowPigment.id!,
-                conditionerId: conditioner?.id,
-                actualCyanGrams: calculationResult.ingredients.cyanGrams,
-                actualMagentaGrams: calculationResult.ingredients.magentaGrams,
-                actualYellowGrams: calculationResult.ingredients.yellowGrams,
-                actualConditionerGrams: calculationResult.ingredients.conditionerGrams,
-                baseHairColor,
-                processingTimeMinutes: 30,
-                measuredResultHex: calculationResult.estimatedResultHex,
+            onPrintRecipe={() =>
+              onPrintRecipe({
+                title: `Rezeptkarte ${targetHex.toUpperCase()} (${totalBatchGrams} ml)`,
                 targetHex,
-                rating: 5,
-                notes: 'Automatisch aus dem Farblabor übernommen.'
-              });
-            }}
-            onPrintRecipe={() => onPrintRecipe(calculationResult)}
+                estimatedResultHex: calculationResult.estimatedResultHex,
+                baseHairColor,
+                totalBatchGrams,
+                ingredients: calculationResult.ingredients,
+                cyanPigmentId: cyanPigment.id || 1,
+                magentaPigmentId: magentaPigment.id || 2,
+                yellowPigmentId: yellowPigment.id || 3,
+                conditionerId: conditioner?.id,
+                createdAt: new Date().toISOString()
+              })
+            }
           />
-
-          {/* Teststrähnen-Modus View (Requirement 5) */}
-          {labMode === 'teststrand' && (
-            <TeststraehnenModusView
-              calculationResult={calculationResult}
-              cyanPigment={cyanPigment}
-              magentaPigment={magentaPigment}
-              yellowPigment={yellowPigment}
-              conditioner={conditioner}
-              targetHex={targetHex}
-              baseHairColor={baseHairColor}
-              currentBatchGrams={totalBatchGrams}
-              onChangeBatchGrams={setTotalBatchGrams}
-              onSaveStrandTest={onCreateStrandTest}
-            />
-          )}
         </div>
       </div>
 

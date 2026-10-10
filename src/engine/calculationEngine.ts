@@ -186,7 +186,7 @@ export function calculateRecipe(
 
   const disclaimer =
     mode === 'demo_experimental'
-      ? 'Achtung: Experimenteller Demo-Modus! Die berechneten Mengen sind eine digitale mathematische Näherung. Vor der Anwendung am Kopf muss zwingend eine Teststrähne durchgeführt werden.'
+      ? 'Geschätztes Farbergebnis: Die berechneten Mengen sind eine Annäherung. Das tatsächliche Farbergebnis hängt von deinen verwendeten Produkten und deiner Ausgangshaarfarbe ab.'
       : 'Kalibrierter Modus: Das Modell nutzt dokumentierte Testergebnisse. Dennoch können individuelle Haarbeschaffenheiten das Ergebnis beeinflussen.';
 
   return {
