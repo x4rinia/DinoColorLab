@@ -1,32 +1,64 @@
-# React + TypeScript + Vite
+# Dino Color Lab 🦕
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+> **Live Web-App:** [https://x4rinia.github.io/DinoColorLab/](https://x4rinia.github.io/DinoColorLab/)
 
-Currently, two official plugins are available:
+Digitaler, anfängerfreundlicher Haarfarben-Mischassistent für direktziehende, nichtoxidative Pigmente (**Blau, Rot-Pink, Gelb**) und **weiße Spülung**.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Optimiert für kleine Testmengen (**5 ml Standard**), mit interaktiver Mischvisualisierung, Teelöffel-Dosierhilfe, automatischem Rezept-Skalierer und lokaler IndexedDB-Speicherung.
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Funktionen
 
-## Expanding the Oxlint configuration
+1. **Farbsystem:**
+   - **Blau:** Echtes, kräftiges Blau (nicht türkis).
+   - **Rot-Pink:** Kühles, pinkstichiges Rot für leuchtende Violett- und Beerentöne.
+   - **Gelb:** Klares, strahlendes Gelb.
+   - **Weiße Spülung:** Reine weiße Haarspülung (`#FFFFFF`) ohne Farb- oder Graustich zum Aufhellen und Verdünnen.
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+2. **Interaktive Farbmischungsansicht:**
+   - Schritt-für-Schritt-Visualisierung: Ausgangspigmente $\rightarrow$ Zugabe $\rightarrow$ Pigmentkern $\rightarrow$ Weiße Spülung $\rightarrow$ Schalenfarbe $\rightarrow$ Wirkung auf der Haarsträhne.
+   - Verständliche Erklärungen der subtraktiven Mischregeln direkt im UI.
+   - Schematische Kennzeichnung für unkalibrierte Produkte.
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+3. **Optimiert für kleine Teststrähnen:**
+   - Voreinstellungen für 2,5 ml, 5 ml (Standard), 10 ml, 15 ml, 25 ml sowie freie Eingabe.
+   - Exakte primäre Berechnung in Gramm.
+   - Milliliter-Berechnung ausschließlich bei hinterlegter Produktdichte.
+
+4. **Alltagstaugliche Teelöffel- & Dosierberechnung:**
+   - 1 TL = 5 ml, ½ TL = 2,5 ml, ¼ TL = 1,25 ml, ⅛ TL = 0,625 ml.
+   - Transparente Genauigkeitsanzeige.
+   - Automatische Dosierspritzen- und Feinwaagen-Empfehlung für Kleinstmengen unter 0,6 ml (keine Scheingenauigkeit).
+
+5. **Modus „Kleine Teststrähne“:**
+   - Auf 5 ml / 5 g voreingestellt.
+   - Hebt Spülungsanteil und Kleinstmengen hervor.
+   - Automatischer Hochrechner für Vollanwendungen (z. B. 30g, 60g, 100g, 150g).
+   - Schritt-für-Schritt-Mischanleitung.
+   - Direkte Dokumentation mit Vorher-/Nachher-Foto und Bewertung.
+
+6. **PWA & Datenschutz:**
+   - Funktioniert vollständig offline im Browser (Progressive Web App).
+   - Keine Datenübertragung an Server; alle Rezepte, Pigmente und Fotos bleiben lokal in deiner Browser-Datenbank (Dexie / IndexedDB).
+
+---
+
+## Entwicklung & Build
+
+```bash
+# Abhängigkeiten installieren
+npm install
+
+# Entwicklungsserver starten
+npm run dev
+
+# Tests ausführen
+npm test
+
+# Linter ausführen
+npm run lint
+
+# Produktions-Bundle bauen
+npm run build
 ```
-
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
