@@ -118,13 +118,13 @@ export function calculateTeaspoonAmount(
     };
   }
 
-  // Bei Mengen unter 0,625 ml (weniger als ⅛ TL)
-  if (ml < 0.625) {
+  // Bei Mengen unter 0,4 ml (wenige Tropfen bzw. Messerspitze)
+  if (ml < 0.4) {
     return {
       canMeasureTeaspoon: false,
       teaspoonDisplay: '< ⅛ TL (Tropfen/Spitze)',
-      fractionValue: 0.625,
-      diffMl: Math.round((0.625 - ml) * 1000) / 1000,
+      fractionValue: 0.25,
+      diffMl: Math.round((0.25 - ml) * 1000) / 1000,
       accuracyDescription: 'Sehr kleine Menge',
       isAccurate: false,
       recommendation: 'Nur wenige Tropfen bzw. eine Messerspitze hinzugeben (oder eine 1-ml-Dosierspritze nutzen).',
@@ -132,59 +132,59 @@ export function calculateTeaspoonAmount(
     };
   }
 
-  // ⅛ TL Vielfache (0.625 ml)
-  const eighths = Math.round(ml / 0.625);
-  const approxMl = eighths * 0.625;
-  const diffMl = Math.round((ml - approxMl) * 100) / 100;
-  const absDiff = Math.abs(diffMl);
-  const isAccurate = absDiff <= 0.15;
+  // Praktische, haushaltsübliche Löffelmaße:
+  // 1 TL (5 ml), ¾ TL (3,75 ml), ⅔ TL (3,33 ml), ½ TL (2,5 ml), ⅓ TL (1,67 ml), ¼ TL (1,25 ml), ⅛ TL (0,625 ml)
+  // Keine komplexen Brüche wie ⅜, ⅝ oder ⅞!
+  const wholeTsp = Math.floor(ml / 5.0);
+  const remainder = ml - wholeTsp * 5.0;
+
+  interface SpoonFraction {
+    text: string;
+    ml: number;
+    isWholeNext?: boolean;
+  }
+
+  const getSimpleFraction = (r: number): SpoonFraction => {
+    if (r < 0.3) return { text: '', ml: 0 };
+    if (r < 0.95) return { text: '⅛ TL', ml: 0.625 };
+    if (r < 1.45) return { text: '¼ TL', ml: 1.25 };
+    if (r < 2.05) return { text: '⅓ TL', ml: 1.67 };
+    if (r < 2.90) return { text: '½ TL', ml: 2.50 };
+    if (r < 3.50) return { text: '⅔ TL', ml: 3.33 };
+    if (r < 4.40) return { text: '¾ TL', ml: 3.75 };
+    return { text: '1 TL', ml: 5.0, isWholeNext: true };
+  };
+
+  const fraction = getSimpleFraction(remainder);
 
   let fractionText = '';
-  const wholeTsp = Math.floor(eighths / 8);
-  const remainderEighths = eighths % 8;
+  let approxMl = 0;
 
-  let remainderText = '';
-  switch (remainderEighths) {
-    case 1:
-      remainderText = '⅛ TL';
-      break;
-    case 2:
-      remainderText = '¼ TL';
-      break;
-    case 3:
-      remainderText = 'ca. ⅜ TL';
-      break;
-    case 4:
-      remainderText = '½ TL';
-      break;
-    case 5:
-      remainderText = 'ca. ⅝ TL';
-      break;
-    case 6:
-      remainderText = '¾ TL';
-      break;
-    case 7:
-      remainderText = 'ca. ⅞ TL';
-      break;
-    default:
-      remainderText = '';
-      break;
-  }
-
-  if (wholeTsp > 0) {
-    if (remainderText) {
-      fractionText = `${wholeTsp} ${remainderText}`;
+  if (fraction.isWholeNext) {
+    const finalWhole = wholeTsp + 1;
+    fractionText = `${finalWhole} TL`;
+    approxMl = finalWhole * 5.0;
+  } else if (wholeTsp > 0) {
+    if (fraction.text) {
+      fractionText = `${wholeTsp} ${fraction.text}`;
+      approxMl = wholeTsp * 5.0 + fraction.ml;
     } else {
       fractionText = `${wholeTsp} TL`;
+      approxMl = wholeTsp * 5.0;
     }
   } else {
-    fractionText = remainderText || '⅛ TL';
+    fractionText = fraction.text || '¼ TL';
+    approxMl = fraction.ml || 1.25;
   }
 
+  const diffMl = Math.round((ml - approxMl) * 100) / 100;
+  const absDiff = Math.abs(diffMl);
+  const isAccurate = absDiff <= 0.25;
+
   let accuracyDescription = 'Exakt passend';
-  if (absDiff > 0.05 && absDiff <= 0.3) {
+  if (absDiff > 0.05 && absDiff <= 0.4) {
     accuracyDescription = `Gute Näherung (${diffMl > 0 ? '+' : ''}${diffMl.toFixed(1)} ml)`;
-  } else if (absDiff > 0.3) {
+  } else if (absDiff > 0.4) {
     accuracyDescription = `Grobe Schätzung (${diffMl > 0 ? '+' : ''}${diffMl.toFixed(1)} ml)`;
   }
 

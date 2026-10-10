@@ -56,7 +56,7 @@ export const BaseHairSelector: React.FC<BaseHairSelectorProps> = ({ value, onCha
         })}
       </div>
 
-      {(value.levelKey === 'already_dyed' || value.levelKey === 'custom') && (
+      {value.levelKey === 'already_dyed' && (
         <div className="mt-4 pt-3 border-t border-slate-800 flex items-center gap-4 bg-slate-950/60 p-3 rounded-2xl border border-slate-800">
           <div className="flex items-center gap-2">
             <label className="text-xs font-semibold text-slate-400">Vorhandener Farbton:</label>

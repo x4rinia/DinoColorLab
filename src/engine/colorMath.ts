@@ -70,13 +70,6 @@ export const BASE_HAIR_COLORS: Record<string, BaseHairColorDefinition> = {
     hex: '#a1a1aa',
     lightness: 70,
     warmth: 0.3
-  },
-  custom: {
-    key: 'custom',
-    name: 'Individuell',
-    hex: '#e4e4e7',
-    lightness: 80,
-    warmth: 0.3
   }
 };
 

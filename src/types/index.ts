@@ -55,8 +55,7 @@ export type BaseHairColorLevel =
   | 'dark_blonde_level6' // Dunkelblond (Level 6)
   | 'light_brown_level5' // Hellbraun (Level 5)
   | 'dark_brown_level4' // Dunkelbraun (Level 4)
-  | 'already_dyed' // Bereits gefärbt
-  | 'custom'; // Individuell
+  | 'already_dyed'; // Bereits gefärbt
 
 export interface BaseHairColorOption {
   key: BaseHairColorLevel;
