@@ -230,7 +230,7 @@ export function calculateRecipe(
   const estimatedResultHex = calculateResultOnHair(
     targetHex,
     baseHairHex,
-    input.maxConditionerRatioPercent > 60
+    calcConditionerRatio
   );
 
   const deltaEToTarget = calculateDeltaE(targetHex, estimatedResultHex);

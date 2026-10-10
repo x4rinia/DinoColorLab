@@ -1,6 +1,6 @@
 import React from 'react';
 import { AlertTriangle, CheckCircle2, Plus, Equal, Sparkles } from 'lucide-react';
-import { calculateResultOnHair } from '../../engine/colorMath';
+import { calculateResultOnHair, calculateDeltaE } from '../../engine/colorMath';
 
 interface HairImpactFormulaCardProps {
   dyeColorHex: string;
@@ -8,6 +8,7 @@ interface HairImpactFormulaCardProps {
   baseHairLevelName: string;
   estimatedResultHex?: string;
   isPastelMode?: boolean;
+  conditionerRatio?: number;
 }
 
 export const HairImpactFormulaCard: React.FC<HairImpactFormulaCardProps> = ({
@@ -15,10 +16,12 @@ export const HairImpactFormulaCard: React.FC<HairImpactFormulaCardProps> = ({
   baseHairHex,
   baseHairLevelName,
   estimatedResultHex,
-  isPastelMode = false
+  isPastelMode = false,
+  conditionerRatio = 0.10
 }) => {
   // Berechne das realistische Farbergebnis auf dem Haar
-  const resultOnHair = estimatedResultHex || calculateResultOnHair(dyeColorHex, baseHairHex, isPastelMode);
+  const resultOnHair =
+    estimatedResultHex || calculateResultOnHair(dyeColorHex, baseHairHex, conditionerRatio);
 
   // Analysiere, ob das Farbergebnis klappen wird oder ob es "nix wird"
   const evaluateCompatibility = () => {
@@ -34,46 +37,80 @@ export const HairImpactFormulaCard: React.FC<HairImpactFormulaCardProps> = ({
     const mixB = parseInt(dyeColorHex.slice(5, 7), 16) || 0;
     const mixBrightness = (mixR + mixG + mixB) / 3;
 
-    const isBlueDominant = mixB > mixR + 30 && mixB > mixG + 10;
-    const hasHairYellow = baseR > 200 && baseG > 180 && baseB < 160;
+    const deltaE = calculateDeltaE(dyeColorHex, resultOnHair);
+    const isDarkDye = mixBrightness < 45;
+    const isPastel = isPastelMode || conditionerRatio > 0.60;
+    const isPureConditioner = conditionerRatio >= 0.98;
 
-    // Test 1: Pastell auf dunklem/mittlerem Haar
-    if (isPastelMode && baseBrightness < 225) {
+    // Test 0: Reine Spülung
+    if (isPureConditioner) {
       return {
-        status: 'fail' as const,
-        badge: 'Wird nicht funktionieren',
-        title: 'Zu dunkles Haar für Pastell',
-        text: 'Pastelltöne sind stark mit weißer Spülung verdünnt und extrem transparent. Auf dieser Ausgangshaarfarbe wird man die Farbe nicht sehen. Dafür wird weißblondes Haar (Stufe 10) benötigt.'
+        status: 'warning' as const,
+        badge: 'Keine Farbveränderung',
+        title: 'Reine Spülung (0% Pigmente)',
+        text: 'Diese Mischung enthält keine Farbpigmente und verändert die Haarfarbe nicht. Sie dient zur Pflege oder als Basis.'
       };
     }
 
-    // Test 2: Direktzieher kann dunkles Haar nicht aufhellen
-    if (mixBrightness > baseBrightness + 50 && baseBrightness < 160) {
+    // Test 1: Dunkle, kräftige Farben (wie Tiefschwarz, Dunkelbraun, Midnight Blue)
+    if (isDarkDye && !isPastel) {
+      return {
+        status: 'success' as const,
+        badge: 'Klappt hervorragend',
+        title: 'Hohe Deckkraft',
+        text: 'Kräftige und dunkle Direktzieher besitzen eine dichte Pigmentierung und färben diese Haarbasis deckend und satt.'
+      };
+    }
+
+    // Test 2: Pastelltöne auf dunklerem Haar
+    if (isPastel && baseBrightness < 215) {
+      return {
+        status: 'fail' as const,
+        badge: 'Wird nicht funktionieren',
+        title: 'Zu dunkles Haar für Pastelltöne',
+        text: 'Pastelltöne sind stark mit Spülung verdünnt und extrem transparent. Auf dunklerem Haar (unter Stufe 9–10) ist das Pigment kaum bis gar nicht sichtbar. Hierfür ist hellblondes bis weißblondes Haar erforderlich.'
+      };
+    }
+
+    // Test 3: Direktzieher kann dunkles Haar nicht aufhellen
+    if (mixBrightness > baseBrightness + 35 && baseBrightness < 180) {
       return {
         status: 'fail' as const,
         badge: 'Wird nicht funktionieren',
         title: 'Haar ist zu dunkel (keine Aufhellung)',
-        text: 'Direktzieher enthalten kein Bleichmittel und können dunkles Haar nicht aufhellen! Diese helle Nuance wird auf dem dunklen Haar nicht sichtbar sein. Erst blondieren.'
+        text: 'Direktzieher enthalten kein Bleichmittel und können dunkles Haar niemals aufhellen! Diese helle Nuance wird auf dem dunkleren Haar nicht sichtbar sein. Erst auf die gewünschte Stufe blondieren.'
       };
     }
 
-    // Test 3: Blau auf gelbstichigem Haar -> Grünstich
-    if (isBlueDominant && hasHairYellow) {
+    // Test 4: Blau auf gelbstichigem Haar -> Grünstich-Gefahr
+    const isBlueDominant = mixB > mixR + 30 && mixB > mixG + 15;
+    const hasWarmYellowHair = baseR > baseB + 35 && baseG > baseB + 20;
+    if (isBlueDominant && hasWarmYellowHair) {
       return {
         status: 'warning' as const,
         badge: 'Achtung: Grünstich-Gefahr',
-        title: 'Gelbstich im Haar erzeugt Grün',
-        text: 'Dein Haar hat einen deutlichen Gelb- oder Goldstich. Gelb im Haar + Blau der Farbe ergibt physikalisch Grün! Für ein reines Blau muss das Haar platinblond sein oder mit etwas Rot-Pink/Violett neutralisiert werden.'
+        title: 'Gelb-/Goldstich im Haar erzeugt Grün',
+        text: 'Blau auf warmblondem Haar reagiert subtraktiv zu Grün oder Petrol. Für ein kühles, reines Blau muss das Haar platinblond sein oder der Gelbstich mit einem Hauch Violett/Rot-Pink neutralisiert werden.'
       };
     }
 
-    // Test 4: Sehr dunkles Haar (Braun/Schwarz)
-    if (baseBrightness < 100) {
+    // Test 5: Sehr dunkles Haar (Stufe 4 Dunkelbraun/Schwarz) bei nicht-dunkler Farbe
+    if (baseBrightness < 80 && mixBrightness > 50) {
       return {
         status: 'warning' as const,
         badge: 'Kaum sichtbar',
         title: 'Dunkle Haarbasis',
-        text: 'Auf sehr dunklem Haar wirken Direktzieher meist nur als leichter Schimmer im Sonnenlicht.'
+        text: 'Auf sehr dunklem Haar wirken bunte Direktzieher meist nur als dezenter Schimmer im direkten Sonnenlicht.'
+      };
+    }
+
+    // Test 6: Spürbare Farbabweichung durch den Haaruntergrund
+    if (deltaE > 25) {
+      return {
+        status: 'warning' as const,
+        badge: 'Farbabweichung erwartet',
+        title: 'Haarbasis beeinflusst das Ergebnis',
+        text: 'Die Eigenpigmente deines Haars scheinen durch die Tönung hindurch. Das Farbergebnis wird wärmer oder gedämpfter ausfallen als die reine Farbmischung.'
       };
     }
 
@@ -81,8 +118,8 @@ export const HairImpactFormulaCard: React.FC<HairImpactFormulaCardProps> = ({
     return {
       status: 'success' as const,
       badge: 'Klappt hervorragend',
-      title: 'Haar ist hell genug',
-      text: 'Die Ausgangshaarfarbe ist ideal für diese Farbmischung. Die Farbpigmente werden wie dargestellt zur Geltung kommen.'
+      title: 'Ideale Ausgangshaarfarbe',
+      text: 'Die Ausgangshaarfarbe bietet einen guten Untergrund für diese Farbmischung. Die Farbpigmente werden gut zur Geltung kommen.'
     };
   };
 

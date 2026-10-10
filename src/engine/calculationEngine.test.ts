@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { calculateRecipe } from './calculationEngine';
 import type { PigmentProfile, CalculationInput } from '../types';
-import { calculateDeltaE, mixPigmentsSubtractive, hexToRgb } from './colorMath';
+import { calculateDeltaE, mixPigmentsSubtractive, hexToRgb, calculateResultOnHair, BASE_HAIR_COLORS } from './colorMath';
 
 describe('Dino Color Lab Calculation Engine', () => {
   const demoBlue: PigmentProfile = {
@@ -399,6 +399,35 @@ describe('Dino Color Lab Calculation Engine', () => {
       expect(result.ingredients.conditionerPercent).toBe(97);
       expect(result.ingredients.conditionerGrams).toBe(38.8);
       expect(result.ingredients.totalGrams).toBe(40);
+    });
+
+    it('black direct dye #000015 on dark blonde #876743 produces deep black, NOT brown', () => {
+      const blackInput: CalculationInput = {
+        targetHex: '#000015',
+        cyanPigmentId: 1,
+        magentaPigmentId: 2,
+        yellowPigmentId: 3,
+        totalBatchGrams: 40,
+        maxConditionerRatioPercent: 100,
+        baseHairColor: { levelKey: 'dark_blonde_level6', hex: '#876743' }
+      };
+      const result = calculateRecipe(blackInput, demoBlue, demoRedPink, demoYellow);
+      expect(result.estimatedResultHex).toBeDefined();
+      const rgb = hexToRgb(result.estimatedResultHex!);
+      const brightness = (rgb.r + rgb.g + rgb.b) / 3;
+      // Must be very dark (brightness < 30), not brown (#764103 has brightness 63)
+      expect(brightness).toBeLessThan(30);
+      expect(result.estimatedResultHex).not.toBe('#764103');
+    });
+
+    it('defines realistic natural hair colors without neon yellow or carrot orange', () => {
+      expect(BASE_HAIR_COLORS.medium_blonde_level8.hex).toBe('#cca970');
+      expect(BASE_HAIR_COLORS.dark_blonde_level6.hex).toBe('#876743');
+      expect(BASE_HAIR_COLORS.light_brown_level5.hex).toBe('#563b23');
+      expect(BASE_HAIR_COLORS.dark_brown_level4.hex).toBe('#2c1b10');
+
+      const pureCondResult = calculateResultOnHair('#ffffff', '#876743', 1.0);
+      expect(pureCondResult).toBe('#876743');
     });
   });
 });

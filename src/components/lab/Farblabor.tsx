@@ -6,6 +6,7 @@ import type {
   ColorRecipe
 } from '../../types';
 import { calculateRecipe } from '../../engine/calculationEngine';
+import { BASE_HAIR_COLORS } from '../../engine/colorMath';
 import { ColorSelection, type ColorStyleCategory } from './ColorSelection';
 import { BaseHairSelector } from './BaseHairSelector';
 import { HairImpactFormulaCard } from './HairImpactFormulaCard';
@@ -62,7 +63,7 @@ export const Farblabor: React.FC<FarblaborProps> = ({
 
   const [baseHairColor, setBaseHairColor] = useState<CustomBaseHairColor>({
     levelKey: 'bleached_level10',
-    hex: '#fffbeb'
+    hex: BASE_HAIR_COLORS.bleached_level10.hex
   });
 
   const [showSaveModal, setShowSaveModal] = useState(false);
@@ -169,9 +170,10 @@ export const Farblabor: React.FC<FarblaborProps> = ({
           <HairImpactFormulaCard
             dyeColorHex={targetHex}
             baseHairHex={baseHairColor.hex}
-            baseHairLevelName={baseHairColor.levelKey}
+            baseHairLevelName={BASE_HAIR_COLORS[baseHairColor.levelKey]?.name || baseHairColor.levelKey}
             estimatedResultHex={calculationResult.estimatedResultHex}
             isPastelMode={selectedStyle === 'pastell'}
+            conditionerRatio={calculationResult.ingredients.conditionerPercent / 100}
           />
 
           <RecipeResultCard

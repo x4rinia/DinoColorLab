@@ -25,51 +25,51 @@ export const BASE_HAIR_COLORS: Record<string, BaseHairColorDefinition> = {
   bleached_level10: {
     key: 'bleached_level10',
     name: 'Sehr hell blondiert (Stufe 10-11)',
-    hex: '#fffbeb',
+    hex: '#faf5e8',
     lightness: 96,
-    warmth: 0.1
+    warmth: 0.05
   },
   light_blonde_level9: {
     key: 'light_blonde_level9',
     name: 'Hellblond (Stufe 9)',
-    hex: '#fef3c7',
+    hex: '#f2e0b5',
     lightness: 88,
-    warmth: 0.25
+    warmth: 0.20
   },
   medium_blonde_level8: {
     key: 'medium_blonde_level8',
     name: 'Mittelblond (Stufe 7-8)',
-    hex: '#fde047',
+    hex: '#cca970',
     lightness: 76,
-    warmth: 0.45
+    warmth: 0.40
   },
   dark_blonde_level6: {
     key: 'dark_blonde_level6',
     name: 'Dunkelblond (Stufe 6)',
-    hex: '#d97706',
+    hex: '#876743',
     lightness: 60,
-    warmth: 0.65
+    warmth: 0.55
   },
   light_brown_level5: {
     key: 'light_brown_level5',
     name: 'Hellbraun (Stufe 5)',
-    hex: '#92400e',
+    hex: '#563b23',
     lightness: 45,
-    warmth: 0.75
+    warmth: 0.70
   },
   dark_brown_level4: {
     key: 'dark_brown_level4',
     name: 'Dunkelbraun (Stufe 4)',
-    hex: '#451a03',
+    hex: '#2c1b10',
     lightness: 30,
     warmth: 0.85
   },
   already_dyed: {
     key: 'already_dyed',
     name: 'Bereits gefärbt',
-    hex: '#a1a1aa',
+    hex: '#9c9387',
     lightness: 70,
-    warmth: 0.3
+    warmth: 0.30
   }
 };
 
@@ -171,31 +171,51 @@ export function mixPigmentsSubtractive(
 }
 
 /**
- * Berechnet das realistische, transparente Farbergebnis einer Haarfarbe auf der Ausgangshaarbasis.
- * Direktzieher legen sich lasierend um das Haar (subtraktive Filterwirkung).
+ * Berechnet das realistische Farbergebnis einer Haarfarbe auf der Ausgangshaarbasis.
+ * Direktzieher legen sich lasierend um das Haar (subtraktive Pigmentwirkung).
+ * Je geringer der Spülungsanteil (höhere Pigmentdichte), desto deckender das Farbergebnis.
+ * Reine Spülung (100%) verändert die Haarfarbe nicht.
+ * Tiefschwarz / Dunkeltöne decken auch dunkleres Haar zuverlässig ab.
  */
 export function calculateResultOnHair(
   dyeHex: string,
   baseHairHex: string,
-  isPastel: boolean = false
+  conditionerRatio: number = 0.10
 ): string {
   const dyeRgb = hexToRgb(dyeHex);
   const hairRgb = hexToRgb(baseHairHex);
 
-  const dyeStrength = isPastel ? 0.65 : 0.95;
+  const cond = Math.max(0, Math.min(1.0, conditionerRatio));
+  const pigmentLoad = 1 - cond;
 
-  const transR = 1 - (1 - dyeRgb.r / 255) * dyeStrength;
-  const transG = 1 - (1 - dyeRgb.g / 255) * dyeStrength;
-  const transB = 1 - (1 - dyeRgb.b / 255) * dyeStrength;
+  // Deckkraft / Opazität der Pigmentschicht:
+  // Bei 0% Spülung (Tiefschwarz etc.) deckt der Direktzieher ca. 96-98% ab.
+  // Bei 85% Spülung (Pastell) liegt die Deckkraft bei ca. 15-20%.
+  // Bei 100% Spülung liegt die Deckkraft bei 0%.
+  const dyeCoverage = pigmentLoad <= 0.001 ? 0 : Math.min(0.97, Math.pow(pigmentLoad, 0.7) * 0.97);
 
-  let outR = hairRgb.r * transR;
-  let outG = hairRgb.g * transG;
-  let outB = hairRgb.b * transB;
+  // Subtraktive Filterwirkung: Die Pigmentschicht filtert das vom Haar reflektierte Licht
+  const transR = dyeRgb.r / 255;
+  const transG = dyeRgb.g / 255;
+  const transB = dyeRgb.b / 255;
 
-  if (isPastel) {
-    outR = outR * 0.7 + hairRgb.r * 0.3;
-    outG = outG * 0.7 + hairRgb.g * 0.3;
-    outB = outB * 0.7 + hairRgb.b * 0.3;
+  const filteredR = hairRgb.r * transR;
+  const filteredG = hairRgb.g * transG;
+  const filteredB = hairRgb.b * transB;
+
+  // Reales Farbergebnis: Mischung aus Pigment-Eigenfarbe (deckend) und gefiltertem Haarreflex
+  let outR = Math.round(dyeRgb.r * dyeCoverage + filteredR * (1 - dyeCoverage));
+  let outG = Math.round(dyeRgb.g * dyeCoverage + filteredG * (1 - dyeCoverage));
+  let outB = Math.round(dyeRgb.b * dyeCoverage + filteredB * (1 - dyeCoverage));
+
+  // Physikalische Grundregel: Direktzieher hellen NIEMALS auf!
+  const hairBrightness = (hairRgb.r + hairRgb.g + hairRgb.b) / 3;
+  const outBrightness = (outR + outG + outB) / 3;
+  if (outBrightness > hairBrightness + 5 && hairBrightness < 220) {
+    const scale = hairBrightness / outBrightness;
+    outR = Math.round(outR * scale);
+    outG = Math.round(outG * scale);
+    outB = Math.round(outB * scale);
   }
 
   return rgbToHex(outR, outG, outB);
