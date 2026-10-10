@@ -52,6 +52,30 @@ export function App() {
     return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
   }, []);
 
+  // Einmalige Bereinigung veralteter Demo-Rezepte aus IndexedDB
+  useEffect(() => {
+    const clearDemosOnce = async () => {
+      const alreadyCleared = localStorage.getItem('dino_demo_recipes_cleaned_v2');
+      if (!alreadyCleared) {
+        try {
+          const allRecipes = await db.recipes.toArray();
+          const demoIds = allRecipes
+            .filter((r) => r.isDemo || r.title.includes('(Demo)') || r.tags?.includes('Demo'))
+            .map((r) => r.id)
+            .filter((id): id is number => typeof id === 'number');
+
+          if (demoIds.length > 0) {
+            await db.recipes.bulkDelete(demoIds);
+          }
+          localStorage.setItem('dino_demo_recipes_cleaned_v2', 'true');
+        } catch (e) {
+          console.error('Failed to cleanup demo recipes', e);
+        }
+      }
+    };
+    clearDemosOnce();
+  }, []);
+
   const handleInstallPwa = async () => {
     if (deferredPrompt) {
       deferredPrompt.prompt();
@@ -86,6 +110,17 @@ export function App() {
 
   const handleDeleteRecipe = async (id: number) => {
     await db.recipes.delete(id);
+  };
+
+  const handleDeleteDemoRecipes = async () => {
+    const allRecipes = await db.recipes.toArray();
+    const demoIds = allRecipes
+      .filter((r) => r.isDemo || r.title.includes('(Demo)') || r.tags?.includes('Demo'))
+      .map((r) => r.id)
+      .filter((id): id is number => typeof id === 'number');
+    if (demoIds.length > 0) {
+      await db.recipes.bulkDelete(demoIds);
+    }
   };
 
   const handleSaveStrandTest = async (test: Omit<StrandTest, 'id' | 'createdAt'>) => {
@@ -138,6 +173,7 @@ export function App() {
             onSaveRecipe={handleSaveRecipe}
             onUpdateRecipe={handleUpdateRecipe}
             onDeleteRecipe={handleDeleteRecipe}
+            onDeleteDemoRecipes={handleDeleteDemoRecipes}
             onNavigateToFarblabor={() => setActiveTab('farblabor')}
           />
         )}

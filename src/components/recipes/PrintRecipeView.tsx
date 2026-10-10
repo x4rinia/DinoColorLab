@@ -1,11 +1,12 @@
 import React from 'react';
 import type { ColorRecipe, PigmentProfile, ConditionerProfile } from '../../types';
-import { Printer, Plus, Equal } from 'lucide-react';
+import { Printer, Plus, Equal, FileText } from 'lucide-react';
 import {
   formatVolumeWithSpoonEstimate,
   formatConditionerSpoonEstimate,
   calculateSimpleRatio
 } from '../../engine/unitConversions';
+import { downloadRecipeAsPdf } from '../../engine/pdfExport';
 
 interface PrintRecipeViewProps {
   recipe: ColorRecipe & {
@@ -18,8 +19,8 @@ interface PrintRecipeViewProps {
 
 export const PrintRecipeView: React.FC<PrintRecipeViewProps> = ({
   recipe,
-  pigments: _pigments,
-  conditioners: _conditioners,
+  pigments,
+  conditioners,
   onClose
 }) => {
   const handlePrint = () => {
@@ -46,13 +47,22 @@ export const PrintRecipeView: React.FC<PrintRecipeViewProps> = ({
           >
             Schließen
           </button>
-          <button
-            onClick={handlePrint}
-            className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-semibold hover:bg-blue-700 shadow-md"
-          >
-            <Printer className="w-4 h-4" />
-            <span>Jetzt drucken / PDF speichern</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => downloadRecipeAsPdf(recipe, pigments, conditioners)}
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-rose-600 text-white rounded-xl text-xs font-semibold hover:bg-rose-700 shadow-md transition-all"
+            >
+              <FileText className="w-4 h-4" />
+              <span>Als PDF herunterladen</span>
+            </button>
+            <button
+              onClick={handlePrint}
+              className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-semibold hover:bg-blue-700 shadow-md"
+            >
+              <Printer className="w-4 h-4" />
+              <span>Drucken</span>
+            </button>
+          </div>
         </div>
 
         <div className="space-y-6">

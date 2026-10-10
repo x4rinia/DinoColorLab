@@ -1,10 +1,11 @@
 import React from 'react';
 import type { ColorRecipe, PigmentProfile, ConditionerProfile } from '../../types';
-import { X, Copy, Download, Printer, Star, Trash2, Tag } from 'lucide-react';
+import { X, Copy, Download, Printer, Star, Trash2, Tag, FileText } from 'lucide-react';
 import {
   formatVolumeWithSpoonEstimate,
   formatConditionerSpoonEstimate
 } from '../../engine/unitConversions';
+import { downloadRecipeAsPdf } from '../../engine/pdfExport';
 
 interface RecipeDetailModalProps {
   recipe: ColorRecipe;
@@ -151,21 +152,32 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
             <span>Löschen</span>
           </button>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap justify-end">
             <button
               onClick={() => onDuplicate(recipe)}
               className="flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 rounded-xl border border-slate-700"
+              title="Rezept duplizieren"
             >
               <Copy className="w-3.5 h-3.5 text-cyan-400" />
               <span>Duplizieren</span>
             </button>
 
             <button
+              onClick={() => downloadRecipeAsPdf(recipe, pigments, conditioners)}
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-rose-600 hover:bg-rose-500 text-xs font-semibold text-white rounded-xl shadow-md transition-all hover:scale-[1.02]"
+              title="Als PDF Dokument herunterladen"
+            >
+              <FileText className="w-3.5 h-3.5 text-white" />
+              <span>PDF Download</span>
+            </button>
+
+            <button
               onClick={() => onExportJson(recipe)}
               className="flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 rounded-xl border border-slate-700"
+              title="JSON-Datei für Dino Color Lab App exportieren"
             >
               <Download className="w-3.5 h-3.5 text-emerald-400" />
-              <span>JSON</span>
+              <span>JSON (App)</span>
             </button>
 
             <button
@@ -173,9 +185,10 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
                 onClose();
                 onPrint(recipe);
               }}
-              className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-xs font-semibold text-white rounded-xl shadow-md"
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 rounded-xl border border-slate-700"
+              title="Druckansicht öffnen"
             >
-              <Printer className="w-3.5 h-3.5" />
+              <Printer className="w-3.5 h-3.5 text-cyan-400" />
               <span>Drucken</span>
             </button>
           </div>

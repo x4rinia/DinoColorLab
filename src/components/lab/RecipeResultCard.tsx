@@ -5,13 +5,15 @@ import {
   calculateSimpleRatio
 } from '../../engine/unitConversions';
 import { downloadRecipeCardAsPng } from '../../engine/recipeCardImageExport';
+import { downloadRecipeAsPdf } from '../../engine/pdfExport';
 import {
   Download,
   Copy,
   Check,
   BookmarkPlus,
   Printer,
-  Sparkles
+  Sparkles,
+  FileText
 } from 'lucide-react';
 
 interface RecipeResultCardProps {
@@ -27,10 +29,10 @@ interface RecipeResultCardProps {
 
 export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
   result,
-  cyanPigment: _cyanPigment,
-  magentaPigment: _magentaPigment,
-  yellowPigment: _yellowPigment,
-  conditioner: _conditioner,
+  cyanPigment,
+  magentaPigment,
+  yellowPigment,
+  conditioner,
   mixedColorHex,
   onSaveRecipe,
   onPrintRecipe
@@ -113,11 +115,35 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
     });
   };
 
+  const handleDownloadPdf = () => {
+    downloadRecipeAsPdf(
+      {
+        title: `Mischrezeptur ${mixedColorHex.toUpperCase()}`,
+        description: 'Berechnet im Dino Color Lab Farblabor für Direktzieher.',
+        targetHex: mixedColorHex,
+        cyanPigmentId: cyanPigment.id || 1,
+        magentaPigmentId: magentaPigment.id || 2,
+        yellowPigmentId: yellowPigment.id || 3,
+        conditionerId: conditioner?.id,
+        totalBatchGrams: 5,
+        ingredients,
+        baseHairColor: { levelKey: 'bleached_level10', hex: '#fffbeb' },
+        testStatus: 'untested',
+        tags: ['Farblabor', 'Teststrähne'],
+        isFavorite: false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+      [cyanPigment, magentaPigment, yellowPigment],
+      conditioner ? [conditioner] : []
+    );
+  };
+
   return (
     <div className="bg-slate-900/90 border-2 border-blue-500/40 rounded-3xl p-5 sm:p-6 shadow-2xl text-white backdrop-blur-md space-y-4 relative overflow-hidden">
       <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Header mit Titel & 4 Aktionen */}
+      {/* Header mit Titel & Exportoptionen */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
         <div>
           <div className="flex items-center gap-2">
@@ -133,16 +159,26 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
           </h3>
         </div>
 
-        {/* 4 Speicher- & Exportoptionen */}
+        {/* Speicher- & Exportoptionen: PDF, Bild, Kopieren, Speichern, Drucken */}
         <div className="flex flex-wrap items-center gap-1.5">
-          {/* 1. Bild (PNG) speichern */}
+          {/* PDF herunterladen */}
+          <button
+            onClick={handleDownloadPdf}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-rose-600/90 hover:bg-rose-500 text-white text-xs font-semibold transition-all shadow-sm"
+            title="Rezeptur als formatiertes PDF herunterladen"
+          >
+            <FileText className="w-3.5 h-3.5" />
+            <span>PDF</span>
+          </button>
+
+          {/* Bild (PNG) speichern */}
           <button
             onClick={handleDownloadPng}
             className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-blue-300 border border-blue-500/30 text-xs font-semibold transition-all shadow-sm"
             title="Rezeptkarte als Bild (PNG) herunterladen"
           >
             <Download className="w-3.5 h-3.5" />
-            <span>Bild (PNG)</span>
+            <span>Bild</span>
           </button>
 
           {/* 2. Rezept kopieren */}

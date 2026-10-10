@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import type { ColorRecipe, PigmentProfile, ConditionerProfile } from '../../types';
 import { RecipeDetailModal } from './RecipeDetailModal';
 import { PrintRecipeView } from './PrintRecipeView';
-import { BookOpen, Search, Upload, Plus, Star } from 'lucide-react';
+import { CreateRecipeModal } from './CreateRecipeModal';
+import { BookOpen, Search, Upload, Plus, Star, Trash2, FlaskConical } from 'lucide-react';
 
 interface RezepteTabProps {
   recipes: ColorRecipe[];
@@ -11,6 +12,7 @@ interface RezepteTabProps {
   onSaveRecipe: (recipe: Omit<ColorRecipe, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
   onUpdateRecipe: (id: number, recipe: Partial<ColorRecipe>) => Promise<void>;
   onDeleteRecipe: (id: number) => Promise<void>;
+  onDeleteDemoRecipes?: () => Promise<void>;
   onNavigateToFarblabor: () => void;
 }
 
@@ -21,12 +23,16 @@ export const RezepteTab: React.FC<RezepteTabProps> = ({
   onSaveRecipe,
   onUpdateRecipe,
   onDeleteRecipe,
+  onDeleteDemoRecipes,
   onNavigateToFarblabor
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterFavoritesOnly, setFilterFavoritesOnly] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<ColorRecipe | null>(null);
   const [printRecipe, setPrintRecipe] = useState<ColorRecipe | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+
+  const demoRecipes = recipes.filter((r) => r.isDemo || r.title.includes('(Demo)') || r.tags?.includes('Demo'));
 
   const filteredRecipes = recipes.filter((r) => {
     if (filterFavoritesOnly && !r.isFavorite) return false;
@@ -60,7 +66,8 @@ export const RezepteTab: React.FC<RezepteTabProps> = ({
               baseHairColor: parsed.baseHairColor || { levelKey: 'bleached_level10', hex: '#fffbeb' },
               testStatus: 'untested',
               tags: parsed.tags || ['Importiert'],
-              isFavorite: false
+              isFavorite: false,
+              isDemo: false
             });
             alert('Rezept erfolgreich importiert!');
           } else {
@@ -87,9 +94,22 @@ export const RezepteTab: React.FC<RezepteTabProps> = ({
   const handleDuplicate = async (r: ColorRecipe) => {
     await onSaveRecipe({
       ...r,
-      title: `${r.title} (Kopie)`
+      title: `${r.title} (Kopie)`,
+      isDemo: false
     });
     if (selectedRecipe) setSelectedRecipe(null);
+  };
+
+  const handleDeleteDemos = async () => {
+    if (confirm(`Möchtest du alle ${demoRecipes.length} Demo-Rezepte wirklich löschen?`)) {
+      if (onDeleteDemoRecipes) {
+        await onDeleteDemoRecipes();
+      } else {
+        for (const d of demoRecipes) {
+          if (d.id) await onDeleteRecipe(d.id);
+        }
+      }
+    }
   };
 
   return (
@@ -102,11 +122,22 @@ export const RezepteTab: React.FC<RezepteTabProps> = ({
             <span>Rezeptbibliothek ({recipes.length})</span>
           </h2>
           <p className="text-xs text-slate-400 mt-1">
-            Verwalte, durchsuche und exportiere deine gespeicherten Haarfarben-Rezepte.
+            Erstelle, verwalte, durchsuche und exportiere deine individuellen Haarfarben-Rezepte.
           </p>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
+          {demoRecipes.length > 0 && (
+            <button
+              onClick={handleDeleteDemos}
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 rounded-xl text-xs font-semibold transition-all"
+              title="Löscht alle Beispiel-/Demo-Rezepte"
+            >
+              <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+              <span>Demo-Rezepte löschen ({demoRecipes.length})</span>
+            </button>
+          )}
+
           <label className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-semibold cursor-pointer">
             <Upload className="w-4 h-4 text-emerald-400" />
             <span>JSON Import</span>
@@ -114,11 +145,11 @@ export const RezepteTab: React.FC<RezepteTabProps> = ({
           </label>
 
           <button
-            onClick={onNavigateToFarblabor}
-            className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 font-semibold text-xs text-white rounded-xl shadow-md"
+            onClick={() => setShowCreateModal(true)}
+            className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 font-semibold text-xs text-white rounded-xl shadow-md transition-all hover:scale-[1.02]"
           >
             <Plus className="w-4 h-4" />
-            <span>Neues Rezept erstellen</span>
+            <span>Neues Rezept</span>
           </button>
         </div>
       </div>
@@ -151,12 +182,33 @@ export const RezepteTab: React.FC<RezepteTabProps> = ({
 
       {/* Recipe Grid */}
       {filteredRecipes.length === 0 ? (
-        <div className="text-center py-12 bg-slate-900/40 rounded-3xl border border-slate-800 text-slate-400 space-y-2">
-          <BookOpen className="w-10 h-10 mx-auto text-slate-600 mb-2" />
-          <p className="font-semibold text-sm">Keine Rezepte gefunden.</p>
-          <p className="text-xs text-slate-500">
-            Erstelle deine erste Mischung im Farblabor oder ändere deinen Suchfilter.
+        <div className="text-center py-12 bg-slate-900/40 rounded-3xl border border-slate-800 text-slate-400 space-y-3">
+          <BookOpen className="w-12 h-12 mx-auto text-slate-600 mb-1" />
+          <p className="font-semibold text-sm text-slate-200">
+            {recipes.length === 0 ? 'Deine Rezeptsammlung ist noch leer.' : 'Keine Rezepte gefunden.'}
           </p>
+          <p className="text-xs text-slate-400 max-w-sm mx-auto">
+            {recipes.length === 0
+              ? 'Erstelle dein erstes eigenes Rezept direkt hier oder mische deine Wunschfarbe im Farblabor.'
+              : 'Ändere deinen Suchfilter oder setze die Suche zurück.'}
+          </p>
+
+          <div className="flex items-center justify-center gap-3 pt-2">
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-xs font-semibold text-white rounded-xl shadow-md"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Rezept manuell anlegen</span>
+            </button>
+            <button
+              onClick={onNavigateToFarblabor}
+              className="flex items-center gap-1.5 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 rounded-xl"
+            >
+              <FlaskConical className="w-4 h-4 text-cyan-400" />
+              <span>Im Farblabor mischen</span>
+            </button>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -181,15 +233,34 @@ export const RezepteTab: React.FC<RezepteTabProps> = ({
                     </div>
                   </div>
 
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onUpdateRecipe(recipe.id!, { isFavorite: !recipe.isFavorite });
-                    }}
-                    className="text-slate-500 hover:text-amber-400 p-1"
-                  >
-                    <Star className={`w-4 h-4 ${recipe.isFavorite ? 'fill-amber-400 text-amber-400' : ''}`} />
-                  </button>
+                  {/* Actions on Card (Favorite & Delete) */}
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onUpdateRecipe(recipe.id!, { isFavorite: !recipe.isFavorite });
+                      }}
+                      className="text-slate-500 hover:text-amber-400 p-1.5 rounded-lg hover:bg-slate-800 transition-colors"
+                      title={recipe.isFavorite ? 'Aus Favoriten entfernen' : 'Zu Favoriten hinzufügen'}
+                    >
+                      <Star className={`w-4 h-4 ${recipe.isFavorite ? 'fill-amber-400 text-amber-400' : ''}`} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (confirm(`Rezept "${recipe.title}" wirklich löschen?`)) {
+                          onDeleteRecipe(recipe.id!);
+                        }
+                      }}
+                      className="text-slate-500 hover:text-rose-400 p-1.5 rounded-lg hover:bg-rose-500/10 transition-colors"
+                      title="Rezept löschen"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
 
                 {recipe.description && (
@@ -201,7 +272,7 @@ export const RezepteTab: React.FC<RezepteTabProps> = ({
                 {/* Ingredients summary */}
                 <div className="grid grid-cols-4 gap-1.5 text-center text-[10px] font-mono font-bold bg-slate-950/60 p-2 rounded-xl border border-slate-800 mb-3">
                   <div className="text-blue-300">Blau: {recipe.ingredients.cyanPercent}%</div>
-                  <div className="text-rose-300">Rot-Pink: {recipe.ingredients.magentaPercent}%</div>
+                  <div className="text-rose-300">Rot: {recipe.ingredients.magentaPercent}%</div>
                   <div className="text-amber-300">Gelb: {recipe.ingredients.yellowPercent}%</div>
                   <div className="text-white">Sp: {recipe.ingredients.conditionerPercent}%</div>
                 </div>
@@ -243,6 +314,20 @@ export const RezepteTab: React.FC<RezepteTabProps> = ({
           onDelete={onDeleteRecipe}
           onPrint={(r) => setPrintRecipe(r)}
           onExportJson={handleExportJson}
+        />
+      )}
+
+      {/* Create Recipe Modal */}
+      {showCreateModal && (
+        <CreateRecipeModal
+          pigments={pigments}
+          conditioners={conditioners}
+          onClose={() => setShowCreateModal(false)}
+          onSave={onSaveRecipe}
+          onNavigateToFarblabor={() => {
+            setShowCreateModal(false);
+            onNavigateToFarblabor();
+          }}
         />
       )}
 
