@@ -271,6 +271,8 @@ export function calculateSimpleRatio(
   if (conditionerG > 0.01) parts.push({ name: 'Weiße Spülung', amount: conditionerG });
 
   if (parts.length === 0) return '100% Farbpigmente';
+  if (parts.length === 1 && parts[0].name === 'Weiße Spülung') return '100% Weiße Spülung (Pur)';
+  if (parts.length === 1) return `100% ${parts[0].name}`;
 
   // Finde kleinsten Farbteil
   const minAmount = Math.min(...parts.map((p) => p.amount));

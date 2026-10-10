@@ -279,7 +279,7 @@ describe('Dino Color Lab Calculation Engine', () => {
       };
       const boldResult = calculateRecipe(boldBlueInput, demoBlue, demoRedPink, demoYellow);
       expect(boldResult.ingredients.conditionerGrams).toBeGreaterThan(0);
-      expect(boldResult.ingredients.conditionerPercent).toBeGreaterThanOrEqual(15);
+      expect(boldResult.ingredients.conditionerPercent).toBeGreaterThanOrEqual(10);
       expect(boldResult.ingredients.conditionerPercent).toBeLessThanOrEqual(20);
 
       // Reines Schwarz (#0a0a0a)
@@ -304,7 +304,7 @@ describe('Dino Color Lab Calculation Engine', () => {
         magentaPigmentId: 2,
         yellowPigmentId: 3,
         totalBatchGrams: 40,
-        maxConditionerRatioPercent: 20,
+        maxConditionerRatioPercent: 100,
         baseHairColor: { levelKey: 'bleached_level10', hex: '#fffbeb' }
       };
       const result = calculateRecipe(tealInput, demoBlue, demoRedPink, demoYellow);
@@ -313,6 +313,25 @@ describe('Dino Color Lab Calculation Engine', () => {
       expect(result.ingredients.magentaPercent).toBeGreaterThan(5);
       expect(result.ingredients.cyanPercent).toBeGreaterThan(40);
       expect(result.ingredients.yellowPercent).toBeGreaterThan(15);
+      expect(result.ingredients.totalGrams).toBe(40);
+    });
+
+    it('calculates 100% conditioner and zero pigments for pure white #ffffff', () => {
+      const whiteInput: CalculationInput = {
+        targetHex: '#ffffff',
+        cyanPigmentId: 1,
+        magentaPigmentId: 2,
+        yellowPigmentId: 3,
+        totalBatchGrams: 40,
+        maxConditionerRatioPercent: 100,
+        baseHairColor: { levelKey: 'bleached_level10', hex: '#ffffff' }
+      };
+      const result = calculateRecipe(whiteInput, demoBlue, demoRedPink, demoYellow);
+      expect(result.ingredients.conditionerGrams).toBe(40);
+      expect(result.ingredients.conditionerPercent).toBe(100);
+      expect(result.ingredients.cyanGrams).toBe(0);
+      expect(result.ingredients.magentaGrams).toBe(0);
+      expect(result.ingredients.yellowGrams).toBe(0);
       expect(result.ingredients.totalGrams).toBe(40);
     });
   });

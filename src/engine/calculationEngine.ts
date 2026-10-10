@@ -94,23 +94,25 @@ export function calculateRecipe(
   const pigmentM = Math.max(0, 1 - normG);
   const pigmentY = Math.max(0, 1 - normB);
   const pigmentSum = pigmentC + pigmentM + pigmentY;
+  const maxPigmentReq = Math.max(pigmentC, pigmentM, pigmentY);
 
   let cRatio = 0;
   let mRatio = 0;
   let yRatio = 0;
 
-  if (pigmentSum > 0) {
+  // Nur wenn echte Pigmente benötigt werden (nicht bei Weiß):
+  if (maxPigmentReq > 0.015 && pigmentSum > 0.01) {
     cRatio = pigmentC / pigmentSum;
     mRatio = pigmentM / pigmentSum;
     yRatio = pigmentY / pigmentSum;
-  }
 
-  // Für sehr ungesättigte Töne (Grau, Schwarz, Erdtöne)
-  if (sat < 0.25) {
-    const neutralWeight = (0.25 - sat) / 0.25;
-    cRatio = cRatio * (1 - neutralWeight) + 0.38 * neutralWeight;
-    mRatio = mRatio * (1 - neutralWeight) + 0.34 * neutralWeight;
-    yRatio = yRatio * (1 - neutralWeight) + 0.28 * neutralWeight;
+    // Für ungesättigte Töne (Grau, Schwarz, Erdtöne), NIEMALS für Weiß!
+    if (sat < 0.25) {
+      const neutralWeight = (0.25 - sat) / 0.25;
+      cRatio = cRatio * (1 - neutralWeight) + 0.38 * neutralWeight;
+      mRatio = mRatio * (1 - neutralWeight) + 0.34 * neutralWeight;
+      yRatio = yRatio * (1 - neutralWeight) + 0.28 * neutralWeight;
+    }
   }
 
   let rawC = cRatio * gainC;
@@ -120,22 +122,25 @@ export function calculateRecipe(
   const rawPigmentSum = rawC + rawM + rawY;
 
   let calcConditionerRatio = 0;
-  if (rawPigmentSum > 0 && maxConditionerRatio > 0) {
-    // Wenn die Zielfarbe sehr tief dunkel / schwarz ist, darf keine Spülung rein (Schwarz braucht 100% Pigmentdichte)
-    const isNearBlack = targetBrightness < 0.16 || (targetRgb.r < 30 && targetRgb.g < 30 && targetRgb.b < 30);
 
-    if (isNearBlack) {
-      calcConditionerRatio = 0;
-    } else {
-      // Grund-Streckanteil für Konsistenz, Pflege und gleichmäßigen Auftrag (z. B. 15-20% bei kräftigen Farben)
-      const baseStretchRatio = Math.min(maxConditionerRatio, 0.15);
-
-      // Zusätzliche Verdünnung/Aufhellung bei hellen Pastelltönen
-      const brightnessDilution = Math.max(0, targetBrightness - 0.25) * 1.1;
-      const targetDilution = Math.max(baseStretchRatio, brightnessDilution);
-
-      calcConditionerRatio = Math.min(maxConditionerRatio, targetDilution);
-    }
+  if (maxConditionerRatio === 0) {
+    calcConditionerRatio = 0;
+  }
+  // 1. Reines Weiß / sehr helle Basen (maxPigmentReq < 0.015): 100% reine Spülung!
+  else if (maxPigmentReq < 0.015) {
+    calcConditionerRatio = 1.0;
+  }
+  // 2. Tiefes Schwarz: 100% Pigmentdichte, keine Spülung
+  else if (targetBrightness < 0.16 || (targetRgb.r < 30 && targetRgb.g < 30 && targetRgb.b < 30)) {
+    calcConditionerRatio = 0;
+  }
+  // 3. Alle Nuancen dazwischen: Helligkeit steuert direkt und stufenlos den Spülungsanteil!
+  else {
+    // Je heller die Zielfarbe (kleineres maxPigmentReq), desto mehr Spülung
+    const naturalConditioner = Math.max(0, 1 - maxPigmentReq);
+    // Bei voller Sättigung (maxPigmentReq nahe 1.0) bleibt ein kleiner Streckanteil von ca. 10%
+    const baseStretch = 0.10;
+    calcConditionerRatio = Math.max(baseStretch, naturalConditioner);
   }
 
   const pigmentMassFraction = 1 - calcConditionerRatio;

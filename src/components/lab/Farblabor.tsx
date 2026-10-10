@@ -39,22 +39,8 @@ export const Farblabor: React.FC<FarblaborProps> = ({
   // Die Menge ist fest für ein Färbeschälchen wie auf dem Bild (40 ml / ca. 2 EL + 2 TL)
   const totalBatchGrams = 40.0;
 
-  // Der Spülungsanteil wird passend zum gewählten Farbton-Stil gesetzt
-  const maxConditionerRatioPercent = useMemo(() => {
-    switch (selectedStyle) {
-      case 'pastell':
-        return 85;
-      case 'grau_schwarz':
-        return 35;
-      case 'natur':
-        return 30;
-      case 'dunkel':
-        return 15; // Bis zu 15% Spülung zum Strecken (0% bei reinem Schwarz)
-      case 'kraeftig':
-      default:
-        return 20; // 20% Spülung zum Strecken & Pflegen bei voller Leuchtkraft
-    }
-  }, [selectedStyle]);
+  // Spülungsanteil skaliert dynamisch mit der Helligkeit (bis zu 100% bei Weiß und Pastell)
+  const maxConditionerRatioPercent = 100;
 
   // Grundfarben: Echtes Blau, Kaltes Rot-Pink, Leuchtendes Gelb & Weiße Spülung
   const cyanPigment = useMemo(
