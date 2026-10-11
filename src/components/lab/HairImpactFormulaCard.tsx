@@ -1,11 +1,13 @@
 import React from 'react';
 import { AlertTriangle, CheckCircle2, Plus, Equal, Sparkles } from 'lucide-react';
 import { calculateResultOnHair, calculateDeltaE } from '../../engine/colorMath';
+import type { CustomBaseHairColor } from '../../types';
 
 interface HairImpactFormulaCardProps {
   dyeColorHex: string;
   baseHairHex: string;
   baseHairLevelName: string;
+  baseHairData?: CustomBaseHairColor;
   estimatedResultHex?: string;
   isPastelMode?: boolean;
   conditionerRatio?: number;
@@ -15,6 +17,7 @@ export const HairImpactFormulaCard: React.FC<HairImpactFormulaCardProps> = ({
   dyeColorHex,
   baseHairHex,
   baseHairLevelName,
+  baseHairData,
   estimatedResultHex,
   isPastelMode = false,
   conditionerRatio = 0.10
@@ -50,6 +53,88 @@ export const HairImpactFormulaCard: React.FC<HairImpactFormulaCardProps> = ({
         title: 'Reine Spülung (0% Pigmente)',
         text: 'Diese Mischung enthält keine Farbpigmente und verändert die Haarfarbe nicht. Sie dient zur Pflege oder als Basis.'
       };
+    }
+
+    // Spezifische Farbregeln für "Bereits gefärbtes Haar"
+    if (baseHairData?.levelKey === 'already_dyed') {
+      const baseIsRedOrPink = baseR > baseG + 30 && baseR > baseB + 15;
+      const baseIsGreen = baseG > baseR + 25 && baseG > baseB + 15;
+      const baseIsYellowOrange = baseR > 140 && baseG > 95 && baseB < 95;
+
+      const dyeIsGreenCyan = mixG > mixR + 30 || (mixG > 100 && mixB > 100 && mixR < 80);
+      const dyeIsBlue = mixB > mixR + 30 && mixB > mixG + 15;
+      const dyeIsYellow = mixR > 180 && mixG > 160 && mixB < 90;
+      const dyeIsRedPink = mixR > mixG + 40 && mixR > mixB + 15;
+
+      // 1. Direktzieher hellen dunklere Haarbasis nicht auf
+      if (mixBrightness > baseBrightness + 35 && baseBrightness < 170) {
+        return {
+          status: 'fail' as const,
+          badge: 'Wird nicht sichtbar sein',
+          title: 'Haarbasis zu dunkel für hellere Tönung',
+          text: `Die vorhandene Haarfarbe (${baseHairHex.toUpperCase()}) ist dunkler als die gewünschte Nuance. Direktzieher enthalten kein Bleichmittel – die hellere Farbe wird nicht sichtbar sein.`
+        };
+      }
+
+      // 2. Pastell auf gefärbtem Haar
+      if (isPastel && baseBrightness < 200) {
+        return {
+          status: 'fail' as const,
+          badge: 'Zu schwach pigmentiert',
+          title: 'Pastelltöne überdecken vorhandene Farbe nicht',
+          text: `Pastellnuancen sind stark mit Spülung verdünnt und transparent. Auf der vorhandenen Haarfarbe (${baseHairHex.toUpperCase()}) reicht die Pigmentkraft nicht aus.`
+        };
+      }
+
+      // 3. Komplementärkontrast (Rot/Pink + Grün/Cyan)
+      if ((baseIsRedOrPink && dyeIsGreenCyan) || (baseIsGreen && dyeIsRedPink)) {
+        return {
+          status: 'warning' as const,
+          badge: 'Achtung: Komplementärkontrast',
+          title: 'Farben neutralisieren sich zu Braun/Schlamm',
+          text: `Rot und Grün/Cyan liegen sich im Farbkreis gegenüber. Die neue Nuance neutralisiert den vorhandenen Ton (${baseHairHex.toUpperCase()}) zu einem schlammigen Braun- oder Grauton.`
+        };
+      }
+
+      // 4. Blau auf Rot -> Violett/Beere
+      if (baseIsRedOrPink && dyeIsBlue) {
+        return {
+          status: 'success' as const,
+          badge: 'Farbmischung: Violett',
+          title: 'Bestehendes Rot + Blau ergibt Beerenton',
+          text: `Das vorhandene Rot (${baseHairHex.toUpperCase()}) verbindet sich harmonisch mit dem blauen Pigment zu einem satten Violett- oder Beerenton.`
+        };
+      }
+
+      // 5. Gelb auf Rot -> Orange/Kupfer
+      if (baseIsRedOrPink && dyeIsYellow) {
+        return {
+          status: 'success' as const,
+          badge: 'Farbmischung: Orange',
+          title: 'Bestehendes Rot + Gelb ergibt Kupfer/Orange',
+          text: `Das gelbe Pigment legt sich über das vorhandene Rot (${baseHairHex.toUpperCase()}) und verschiebt das Gesamtergebnis in ein warmes Kupfer oder feuriges Orange.`
+        };
+      }
+
+      // 6. Blau auf Gelb/Orange -> Grün
+      if (baseIsYellowOrange && dyeIsBlue) {
+        return {
+          status: 'warning' as const,
+          badge: 'Achtung: Grünstich-Gefahr',
+          title: 'Gelb/Orange + Blau erzeugt Grün/Petrol',
+          text: `Auf der vorhandenen warmen Haarbasis (${baseHairHex.toUpperCase()}) reagiert Blau subtraktiv zu Türkis, Petrol oder Moosgrün.`
+        };
+      }
+
+      // 7. Ton-in-Ton Auffrischung
+      if (baseIsRedOrPink && dyeIsRedPink) {
+        return {
+          status: 'success' as const,
+          badge: 'Ton-in-Ton Auffrischung',
+          title: 'Intensivierung der bestehenden Farbe',
+          text: `Die roten Pigmente frischen den vorhandenen Ton (${baseHairHex.toUpperCase()}) auf und verleihen maximale Sättigung und Leuchtkraft.`
+        };
+      }
     }
 
     // Test 1: Dunkle, kräftige Farben (wie Tiefschwarz, Dunkelbraun, Midnight Blue)
@@ -133,8 +218,15 @@ export const HairImpactFormulaCard: React.FC<HairImpactFormulaCardProps> = ({
             <Sparkles className="w-4 h-4 text-blue-400" />
             <span>Geschätzte Wirkung auf dem Haar</span>
           </h3>
-          <div className="text-xs text-slate-400 mt-0.5">
-            Auf Basis: <span className="text-slate-200 font-semibold">{baseHairLevelName}</span>
+          <div className="text-xs text-slate-400 mt-1 flex items-center gap-1.5 flex-wrap">
+            <span>Auf Basis:</span>
+            <span className="inline-flex items-center gap-1.5 bg-slate-800/90 px-2.5 py-0.5 rounded-lg border border-slate-700 text-slate-200 font-semibold shadow-sm">
+              <span
+                className="w-3 h-3 rounded-full border border-white/30 shrink-0 shadow-inner"
+                style={{ backgroundColor: baseHairHex }}
+              />
+              <span>{baseHairLevelName}</span>
+            </span>
           </div>
         </div>
 
@@ -173,7 +265,14 @@ export const HairImpactFormulaCard: React.FC<HairImpactFormulaCardProps> = ({
 
           {/* 2. Ausgangshaar */}
           <div className="flex-1 space-y-1">
-            <span className="text-[11px] font-semibold text-slate-300 block">Haarfarbe</span>
+            <span
+              className="text-[11px] font-semibold text-slate-300 block truncate"
+              title={baseHairData?.notes ? `Haarfarbe (${baseHairData.notes})` : 'Haarfarbe'}
+            >
+              {baseHairData?.levelKey === 'already_dyed'
+                ? `Haar (${baseHairData.notes || 'gefärbt'})`
+                : 'Haarfarbe'}
+            </span>
             <div
               className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl border-2 border-white/20 shadow-md mx-auto transition-transform hover:scale-105"
               style={{ backgroundColor: baseHairHex }}

@@ -429,5 +429,24 @@ describe('Dino Color Lab Calculation Engine', () => {
       const pureCondResult = calculateResultOnHair('#ffffff', '#7c6349', 1.0);
       expect(pureCondResult).toBe('#7c6349');
     });
+
+    it('accounts for already_dyed custom base color in recipe estimation', () => {
+      const customRedHair: CalculationInput = {
+        targetHex: '#0088ff',
+        cyanPigmentId: 1,
+        magentaPigmentId: 2,
+        yellowPigmentId: 3,
+        totalBatchGrams: 40,
+        maxConditionerRatioPercent: 100,
+        baseHairColor: { levelKey: 'already_dyed', hex: '#AD5283', notes: 'rot' }
+      };
+
+      const result = calculateRecipe(customRedHair, demoBlue, demoRedPink, demoYellow);
+      expect(result.estimatedResultHex).toBeDefined();
+
+      // Applying blue over red dyed hair yields a purple/violet tone
+      const rgb = hexToRgb(result.estimatedResultHex!);
+      expect(rgb.b).toBeGreaterThan(rgb.g);
+    });
   });
 });

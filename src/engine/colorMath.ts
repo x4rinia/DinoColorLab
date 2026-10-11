@@ -67,7 +67,7 @@ export const BASE_HAIR_COLORS: Record<string, BaseHairColorDefinition> = {
   already_dyed: {
     key: 'already_dyed',
     name: 'Bereits gefärbt',
-    hex: '#8e8276',
+    hex: '#ad5283',
     lightness: 70,
     warmth: 0.25
   }
@@ -213,10 +213,16 @@ export function calculateResultOnHair(
   let outG = Math.round(hairRgb.g * transG);
   let outB = Math.round(hairRgb.b * transB);
 
-  // Garantiertes physikalisches Gesetz: Direktzieher hellen NIEMALS auf!
-  outR = Math.min(hairRgb.r, Math.max(0, outR));
-  outG = Math.min(hairRgb.g, Math.max(0, outG));
-  outB = Math.min(hairRgb.b, Math.max(0, outB));
+  // Oberflächenanlagerung der Direktzieher-Pigmente (semi-permanente Farbschicht)
+  const surfaceDeposit = 0.18 * pigmentLoad;
+  outR = Math.round((1 - surfaceDeposit) * outR + surfaceDeposit * dyeRgb.r * pigmentLoad);
+  outG = Math.round((1 - surfaceDeposit) * outG + surfaceDeposit * dyeRgb.g * pigmentLoad);
+  outB = Math.round((1 - surfaceDeposit) * outB + surfaceDeposit * dyeRgb.b * pigmentLoad);
+
+  // Grenzen einhalten (0–255)
+  outR = Math.max(0, Math.min(255, outR));
+  outG = Math.max(0, Math.min(255, outG));
+  outB = Math.max(0, Math.min(255, outB));
 
   return rgbToHex(outR, outG, outB);
 }

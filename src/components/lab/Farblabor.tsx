@@ -170,7 +170,12 @@ export const Farblabor: React.FC<FarblaborProps> = ({
           <HairImpactFormulaCard
             dyeColorHex={targetHex}
             baseHairHex={baseHairColor.hex}
-            baseHairLevelName={BASE_HAIR_COLORS[baseHairColor.levelKey]?.name || baseHairColor.levelKey}
+            baseHairLevelName={
+              baseHairColor.levelKey === 'already_dyed'
+                ? `Bereits gefärbt${baseHairColor.notes ? ` (${baseHairColor.notes} • ${baseHairColor.hex.toUpperCase()})` : ` (${baseHairColor.hex.toUpperCase()})`}`
+                : (BASE_HAIR_COLORS[baseHairColor.levelKey]?.name || baseHairColor.levelKey)
+            }
+            baseHairData={baseHairColor}
             estimatedResultHex={calculationResult.estimatedResultHex}
             isPastelMode={selectedStyle === 'pastell'}
             conditionerRatio={calculationResult.ingredients.conditionerPercent / 100}
