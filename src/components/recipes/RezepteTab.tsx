@@ -281,7 +281,7 @@ export const RezepteTab: React.FC<RezepteTabProps> = ({
               </div>
 
               <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
-                <span>Färbeschale (40 ml)</span>
+                <span>Standard (40 ml)</span>
                 <span className="text-blue-400 font-semibold group-hover:underline">Rezept öffnen ➔</span>
               </div>
             </div>

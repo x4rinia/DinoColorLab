@@ -116,13 +116,13 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
             </div>
             <div>
               <div className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
-                <span>Anmisch-Menge:</span>
+                <span>Menge:</span>
                 <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${isDouble ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : 'bg-blue-500/15 text-blue-300 border border-blue-500/20'}`}>
-                  {isDouble ? '2 Färbeschalen (80 ml)' : '1 Färbeschale (40 ml)'}
+                  {isDouble ? 'Doppelte Menge' : 'Standard'}
                 </span>
               </div>
               <div className="text-[11px] text-slate-400 mt-0.5">
-                {isDouble ? 'Rezeptur für 80 ml verdoppelt' : 'Standardmenge für Färbeschale (40 ml)'}
+                {isDouble ? 'Rezeptur für 80 ml verdoppelt' : 'Standardmenge für 40 ml'}
               </div>
             </div>
           </div>
@@ -137,7 +137,7 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
               }`}
             >
-              1x Standard (40 ml)
+              Standard
             </button>
             <button
               type="button"
@@ -147,10 +147,10 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
                   ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/30 ring-1 ring-indigo-400'
                   : 'bg-slate-800/90 text-blue-300 hover:text-white hover:bg-slate-800 border border-blue-500/30'
               }`}
-              title="Doppelte Menge (80 ml) anmischen"
+              title="Doppelte Menge anmischen"
             >
               <Sparkles className="w-3.5 h-3.5 text-blue-300" />
-              <span>2x Doppelte Menge (80 ml)</span>
+              <span>Doppelte Menge</span>
             </button>
           </div>
         </div>
@@ -208,7 +208,7 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
               <tr className="bg-slate-900 font-bold border-t border-slate-700 text-white">
                 <td className="p-3">Portion</td>
                 <td className="p-3 text-right font-semibold text-blue-300">
-                  {isDouble ? 'Doppelte Menge (80 ml / 2 Färbeschalen)' : 'Färbeschale (40 ml / ca. 2 EL + 2 TL)'}
+                  {isDouble ? '80 ml (Doppelte Menge)' : '40 ml (Standard)'}
                 </td>
                 <td className="p-3 text-right font-mono">100%</td>
               </tr>

@@ -89,7 +89,7 @@ export const PrintRecipeView: React.FC<PrintRecipeViewProps> = ({
                 !isDouble ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              1x Standard (40 ml)
+              Standard
             </button>
             <button
               onClick={() => setMultiplier(2)}
@@ -98,7 +98,7 @@ export const PrintRecipeView: React.FC<PrintRecipeViewProps> = ({
               }`}
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span>2x Doppelte Menge (80 ml)</span>
+              <span>Doppelte Menge</span>
             </button>
           </div>
 
@@ -126,7 +126,7 @@ export const PrintRecipeView: React.FC<PrintRecipeViewProps> = ({
               <div className="text-xs font-bold uppercase tracking-wider text-blue-600">Dino Color Lab 🦕</div>
               <h1 className="text-2xl font-black text-slate-900 mt-1 m-0">{activeRecipe.title}</h1>
               <div className="text-xs text-slate-500 mt-1">
-                Erstellt am: {new Date(recipe.createdAt).toLocaleDateString('de-DE')} • Portion: {isDouble ? 'Doppelte Menge (80 ml / 2 Färbeschalen)' : 'Färbeschale (40 ml / ca. 2 EL + 2 TL)'}
+                Erstellt am: {new Date(recipe.createdAt).toLocaleDateString('de-DE')} • Portion: {isDouble ? 'Doppelte Menge (80 ml)' : 'Standard (40 ml / ca. 2 EL + 2 TL)'}
               </div>
             </div>
 
@@ -239,7 +239,7 @@ export const PrintRecipeView: React.FC<PrintRecipeViewProps> = ({
                 <tr className="bg-slate-50 font-bold border-t border-slate-300">
                   <td className="p-3">Portion gesamt</td>
                   <td className="p-3 text-right font-semibold text-blue-700">
-                    {isDouble ? '80 ml (2 Färbeschalen)' : '40 ml (1 Färbeschale)'}
+                    {isDouble ? '80 ml (Doppelte Menge)' : '40 ml (Standard)'}
                   </td>
                   <td className="p-3 text-right font-mono">100%</td>
                 </tr>
@@ -252,8 +252,8 @@ export const PrintRecipeView: React.FC<PrintRecipeViewProps> = ({
             <div className="font-bold">🥄 Praxistipp zur Dosierung:</div>
             <div>
               {isDouble
-                ? '• Gesamtmenge: 80 ml (Doppelte Menge / 2 Färbeschalen / ca. 5 EL + 1 TL).'
-                : '• Gesamtmenge: 40 ml (1 Färbeschale / ca. 2 EL + 2 TL).'}
+                ? '• Gesamtmenge: 80 ml (Doppelte Menge / ca. 5 EL + 1 TL).'
+                : '• Gesamtmenge: 40 ml (Standard / ca. 2 EL + 2 TL).'}
             </div>
             <div>• 1 EL = 15 ml | 1 TL = 5 ml (Kaffeelöffel) | ½ TL = 2,5 ml.</div>
             <div>• Spülung: Dient auch bei kräftigen Farben zum Strecken & für Geschmeidigkeit (bei reinem Schwarz 0%).</div>

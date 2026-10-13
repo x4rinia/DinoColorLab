@@ -37,7 +37,7 @@ export const Farblabor: React.FC<FarblaborProps> = ({
   // Gewählter Nuancen-Stil: Pastell, Kräftig, Dunkel, Grau/Schwarz, Natürlich
   const [selectedStyle, setSelectedStyle] = useState<ColorStyleCategory>('kraeftig');
 
-  // Multiplikator für die Menge (1 = 40 ml Standard / 1 Schale, 2 = 80 ml Doppelte Menge / 2 Schalen)
+  // Multiplikator für die Menge (1 = 40 ml Standard, 2 = 80 ml Doppelte Menge)
   const [batchMultiplier, setBatchMultiplier] = useState<1 | 2>(1);
   const totalBatchGrams = 40.0 * batchMultiplier;
 
@@ -71,7 +71,7 @@ export const Farblabor: React.FC<FarblaborProps> = ({
   const [recipeTitle, setRecipeTitle] = useState('');
   const [recipeDescription, setRecipeDescription] = useState('');
 
-  // Berechnung der Mischung (40 ml Färbeschale)
+  // Berechnung der Mischung (40 ml Standard / 80 ml doppelte Menge)
   const calculationResult = useMemo(() => {
     return calculateRecipe(
       {

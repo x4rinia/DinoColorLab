@@ -61,7 +61,7 @@ export function downloadRecipeCardAsPng(data: RecipeCardExportData): void {
   ctx.fillText(
     data.portionText
       ? `Rezeptkarte für ${data.portionText}`
-      : 'Rezeptkarte für Färbeschale (40 ml / ca. 2 EL + 2 TL)',
+      : 'Rezeptkarte für Standardmenge (40 ml / ca. 2 EL + 2 TL)',
     50,
     100
   );

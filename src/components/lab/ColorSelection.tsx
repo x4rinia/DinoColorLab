@@ -153,7 +153,7 @@ export const ColorSelection: React.FC<ColorSelectionProps> = ({
             <span>Wunschfarbe & Nuancen-Stil</span>
           </h2>
           <span className="text-xs text-slate-400">
-            Feste Färbeschalen-Portion (40 ml)
+            Mischrezeptur mit praktischen Löffelmaßen
           </span>
         </div>
 

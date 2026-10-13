@@ -358,10 +358,11 @@ export function scaleRecipeIngredients(
     else if (items[0].key === 'yel') yelG = roundVal(yelG + diff);
   }
 
-  const cyanPercent = Math.round((cyanG / targetGrams) * 100 * 10) / 10;
-  const magentaPercent = Math.round((magG / targetGrams) * 100 * 10) / 10;
-  const yellowPercent = Math.round((yelG / targetGrams) * 100 * 10) / 10;
-  const conditionerPercent = Math.round((condG / targetGrams) * 100 * 10) / 10;
+  // Die prozentuale Rezeptur-Zusammensetzung bleibt beim Hochskalieren (z. B. doppelte Menge) unverändert!
+  const cyanPercent = source.cyanPercent;
+  const magentaPercent = source.magentaPercent;
+  const yellowPercent = source.yellowPercent;
+  const conditionerPercent = source.conditionerPercent;
 
   const cyanMl = cyanDensity ? Math.round((cyanG / cyanDensity) * 100) / 100 : undefined;
   const magentaMl = magentaDensity ? Math.round((magG / magentaDensity) * 100) / 100 : undefined;

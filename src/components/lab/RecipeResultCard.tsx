@@ -113,8 +113,8 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
   }, [ingredients]);
 
   const portionLabel = isDouble
-    ? 'Doppelte Menge (80 ml / 2 Färbeschalen)'
-    : 'Färbeschale (40 ml / ca. 2 EL + 2 TL)';
+    ? 'Doppelte Menge (80 ml)'
+    : 'Standard (40 ml)';
 
   const handleCopyText = async () => {
     const text = [
@@ -270,7 +270,7 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
             {mixedColorHex.toUpperCase()}
           </div>
           <div className="text-xs text-slate-400">
-            Rezeptur in Löffelmaßen für {isDouble ? 'die doppelte Menge (80 ml)' : 'die Färbeschale (40 ml)'}
+            Rezeptur in Löffelmaßen für {isDouble ? 'die doppelte Menge (80 ml)' : 'die Standardmenge (40 ml)'}
           </div>
         </div>
       </div>
@@ -322,15 +322,15 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
           </div>
           <div>
             <div className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
-              <span>Anmisch-Menge:</span>
+              <span>Menge:</span>
               <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${isDouble ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : 'bg-blue-500/15 text-blue-300 border border-blue-500/20'}`}>
-                {isDouble ? '2 Färbeschalen (80 ml)' : '1 Färbeschale (40 ml)'}
+                {isDouble ? 'Doppelte Menge' : 'Standard'}
               </span>
             </div>
             <div className="text-[11px] text-slate-400 mt-0.5">
               {isDouble
-                ? 'Hochgerechnet für langes, volles Haar oder ganze Färbung'
-                : 'Standardmenge für Spitzen, Strähnen oder feines/kurzes Haar'}
+                ? 'Rezeptur für 80 ml (doppelte Löffelmengen)'
+                : 'Standardmenge für 40 ml'}
             </div>
           </div>
         </div>
@@ -346,7 +346,7 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/80'
             }`}
           >
-            1x Standard (40 ml)
+            Standard
           </button>
           <button
             type="button"
@@ -356,10 +356,10 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
                 ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/30 ring-1 ring-indigo-400'
                 : 'bg-slate-800/90 text-blue-300 hover:text-white hover:bg-slate-800 border border-blue-500/30'
             }`}
-            title="Doppelte Menge (80 ml) anmischen"
+            title="Doppelte Menge anmischen"
           >
             <Sparkles className="w-3.5 h-3.5 text-blue-300" />
-            <span>2x Doppelte Menge (80 ml)</span>
+            <span>Doppelte Menge</span>
           </button>
         </div>
       </div>
@@ -435,7 +435,7 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
             <tr className="bg-slate-900/90 font-bold border-t border-slate-700 text-white">
               <td className="p-3">Portion gesamt</td>
               <td className="p-3 text-right font-semibold text-blue-300">
-                {isDouble ? '80 ml (2 Färbeschalen)' : '40 ml (1 Färbeschale)'}
+                {isDouble ? '80 ml (Doppelte Menge)' : '40 ml (Standard)'}
               </td>
               <td className="p-3 text-right font-mono">100%</td>
             </tr>
@@ -451,13 +451,13 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
           <br />
           {isDouble ? (
             <>
-              • Aktuelle Gesamtmenge: <strong>80 ml (Doppelte Menge)</strong> – entspricht genau 2 Färbeschalen (ca. 5 EL + 1 TL).
+              • Aktuelle Gesamtmenge: <strong>80 ml (Doppelte Menge)</strong>.
               <br />
-              • Alle Löffelmaße in der Tabelle sind <strong>bereits verdoppelt</strong>.
+              • Alle Löffelmaße in der Tabelle sind <strong>bereits verdoppelt</strong> (die Prozentanteile der Rezeptur bleiben exakt gleich).
             </>
           ) : (
             <>
-              • Standard-Gesamtmenge im Schälchen: <strong>40 ml</strong> (entspricht genau 2 EL + 2 TL).
+              • Standard-Gesamtmenge: <strong>40 ml</strong> (ca. 2 EL + 2 TL).
             </>
           )}
           <br />

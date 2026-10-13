@@ -201,10 +201,27 @@ export function calculateRecipe(
     }
   }
 
-  const cyanPercent = totalGrams > 0 ? Math.round((cyanG / totalGrams) * 100 * 10) / 10 : 0;
-  const magentaPercent = totalGrams > 0 ? Math.round((magG / totalGrams) * 100 * 10) / 10 : 0;
-  const yellowPercent = totalGrams > 0 ? Math.round((yelG / totalGrams) * 100 * 10) / 10 : 0;
-  const conditionerPercent = totalGrams > 0 ? Math.round((condG / totalGrams) * 100 * 10) / 10 : 0;
+  // Rezeptur-Prozente sind eine feste Eigenschaft der Farbmischung (Rezeptverhältnis)
+  // und verändern sich nicht, wenn die Gesamtmenge skaliert oder verdoppelt wird!
+  let cP = pC === 0 ? 0 : Math.round(cFrac * 1000) / 10;
+  let mP = pM === 0 ? 0 : Math.round(mFrac * 1000) / 10;
+  let yP = pY === 0 ? 0 : Math.round(yFrac * 1000) / 10;
+  let condP = 0;
+  if (calcConditionerRatio > 0) {
+    condP = Math.round(Math.max(0, 100 - (cP + mP + yP)) * 10) / 10;
+  } else {
+    const diffP = Math.round((100 - (cP + mP + yP)) * 10) / 10;
+    if (Math.abs(diffP) > 0.001) {
+      if (cP >= mP && cP >= yP) cP = Math.round((cP + diffP) * 10) / 10;
+      else if (mP >= cP && mP >= yP) mP = Math.round((mP + diffP) * 10) / 10;
+      else yP = Math.round((yP + diffP) * 10) / 10;
+    }
+  }
+
+  const cyanPercent = cP;
+  const magentaPercent = mP;
+  const yellowPercent = yP;
+  const conditionerPercent = condP;
 
   const cyanMl = cyanPigment.densityGPerMl ? Math.round((cyanG / cyanPigment.densityGPerMl) * 100) / 100 : undefined;
   const magentaMl = magentaPigment.densityGPerMl ? Math.round((magG / magentaPigment.densityGPerMl) * 100) / 100 : undefined;

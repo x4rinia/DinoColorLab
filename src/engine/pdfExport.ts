@@ -116,8 +116,8 @@ export function downloadRecipeAsPdf(
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8.5);
   const portionPdfText = (recipe.totalBatchGrams || 40) >= 75
-    ? `Portion: Doppelte Menge (ca. ${recipe.totalBatchGrams || 80}g / 80 ml – 2 Färbeschalen)`
-    : `Portion: ca. ${recipe.totalBatchGrams || 40}g / 40 ml (Färbeschale ca. 2 EL + 2 TL)`;
+    ? `Portion: Doppelte Menge (ca. ${recipe.totalBatchGrams || 80}g / 80 ml)`
+    : `Portion: ca. ${recipe.totalBatchGrams || 40}g / 40 ml (Standard ca. 2 EL + 2 TL)`;
   doc.text(portionPdfText, 48, y + 25);
 
   // Base Hair Color preview on the right
@@ -249,9 +249,9 @@ export function downloadRecipeAsPdf(
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
   if ((recipe.totalBatchGrams || 40) >= 75) {
-    doc.text('• Doppelte Gesamtmenge: 80 ml (2 Färbeschalen / ca. 5 EL + 1 TL).', 18, y + 12);
+    doc.text('• Doppelte Gesamtmenge: 80 ml (ca. 5 EL + 1 TL).', 18, y + 12);
   } else {
-    doc.text('• 1 EL = 15 ml | 1 TL = ca. 5 ml | Standardmenge Färbeschale: 40 ml (2 EL + 2 TL).', 18, y + 12);
+    doc.text('• 1 EL = 15 ml | 1 TL = ca. 5 ml | Standardmenge: 40 ml (2 EL + 2 TL).', 18, y + 12);
   }
   doc.text('• Bei winzigen Mengen unter ¼ TL: Nur eine Messerspitze mit dem Färbepinsel oder Tropfen hinzugeben.', 18, y + 17);
   doc.text('• Direktzieher sind semi-transparent: Vorab immer eine Teststrähne an unauffälliger Haarpartie durchführen!', 18, y + 22);

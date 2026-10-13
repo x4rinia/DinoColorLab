@@ -448,5 +448,31 @@ describe('Dino Color Lab Calculation Engine', () => {
       const rgb = hexToRgb(result.estimatedResultHex!);
       expect(rgb.b).toBeGreaterThan(rgb.g);
     });
+
+    it('preserves identical percentage composition when doubling batch size from 40g to 80g', () => {
+      const baseInput: Omit<CalculationInput, 'totalBatchGrams'> = {
+        targetHex: '#7c3aed', // Purple/Violet
+        cyanPigmentId: 1,
+        magentaPigmentId: 2,
+        yellowPigmentId: 3,
+        maxConditionerRatioPercent: 80,
+        baseHairColor: { levelKey: 'bleached_level10', hex: '#fffbeb' }
+      };
+
+      const result40 = calculateRecipe({ ...baseInput, totalBatchGrams: 40 }, demoBlue, demoRedPink, demoYellow);
+      const result80 = calculateRecipe({ ...baseInput, totalBatchGrams: 80 }, demoBlue, demoRedPink, demoYellow);
+
+      // Percentages must remain completely identical!
+      expect(result80.ingredients.cyanPercent).toBe(result40.ingredients.cyanPercent);
+      expect(result80.ingredients.magentaPercent).toBe(result40.ingredients.magentaPercent);
+      expect(result80.ingredients.yellowPercent).toBe(result40.ingredients.yellowPercent);
+      expect(result80.ingredients.conditionerPercent).toBe(result40.ingredients.conditionerPercent);
+
+      // But grams must be doubled!
+      expect(result80.ingredients.totalGrams).toBe(80);
+      expect(result40.ingredients.totalGrams).toBe(40);
+      expect(result80.ingredients.cyanGrams).toBeCloseTo(result40.ingredients.cyanGrams * 2, 0);
+      expect(result80.ingredients.magentaGrams).toBeCloseTo(result40.ingredients.magentaGrams * 2, 0);
+    });
   });
 });

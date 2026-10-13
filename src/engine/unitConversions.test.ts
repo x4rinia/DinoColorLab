@@ -107,11 +107,15 @@ describe('Unit Conversions & Measurement Engine', () => {
     expect(scaled50g.cyanGrams + scaled50g.magentaGrams + scaled50g.yellowGrams + scaled50g.conditionerGrams).toBe(50);
     expect(scaled50g.cyanGrams).toBe(3.0);
     expect(scaled50g.conditionerGrams).toBe(45.0);
+    expect(scaled50g.cyanPercent).toBe(6.0);
+    expect(scaled50g.conditionerPercent).toBe(90.0);
 
     const scaled100g = scaleRecipeIngredients(testBatch, 100);
     expect(scaled100g.totalGrams).toBe(100);
     expect(scaled100g.cyanGrams + scaled100g.magentaGrams + scaled100g.yellowGrams + scaled100g.conditionerGrams).toBe(100);
     expect(scaled100g.cyanGrams).toBe(6.0);
+    expect(scaled100g.cyanPercent).toBe(6.0);
+    expect(scaled100g.conditionerPercent).toBe(90.0);
   });
 
   it('correctly maps 15 ml conditioner to 1 EL and 20 ml to 1 EL + 1 TL', () => {
