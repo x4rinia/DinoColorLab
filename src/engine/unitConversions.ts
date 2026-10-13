@@ -266,7 +266,7 @@ export function calculateSimpleRatio(
 ): string {
   const parts: { name: string; amount: number }[] = [];
   if (cyanG > 0.01) parts.push({ name: 'Blau', amount: cyanG });
-  if (magentaG > 0.01) parts.push({ name: 'Pinkstichiges Rot', amount: magentaG });
+  if (magentaG > 0.01) parts.push({ name: 'Rot', amount: magentaG });
   if (yellowG > 0.01) parts.push({ name: 'Gelb', amount: yellowG });
   if (conditionerG > 0.01) parts.push({ name: 'Weiße Spülung', amount: conditionerG });
 

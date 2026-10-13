@@ -2,13 +2,13 @@ export type ColorGroup = 'cyan' | 'magenta' | 'yellow';
 
 export const COLOR_GROUP_NAMES: Record<ColorGroup, string> = {
   cyan: 'Blau',
-  magenta: 'Pinkstichiges Rot',
+  magenta: 'Rot',
   yellow: 'Gelb'
 };
 
 export const COLOR_GROUP_DESCRIPTIONS: Record<ColorGroup, string> = {
   cyan: 'Blau (echtes kräftiges Blau, nicht türkis)',
-  magenta: 'Pinkstichiges Rot (kühles Kaltrot für kräftige Violett- und Pinktöne)',
+  magenta: 'Rot (kühles Kaltrot für kräftige Violett- und Pinktöne)',
   yellow: 'Gelb (klares, leuchtendes Gelb)'
 };
 

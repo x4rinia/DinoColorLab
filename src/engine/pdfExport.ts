@@ -180,7 +180,7 @@ export function downloadRecipeAsPdf(
       percent: `${recipe.ingredients.cyanPercent}%`
     },
     {
-      name: `Pinkstichiges Rot: ${magenta?.name || 'Kühles Rot/Magenta'}`,
+      name: `Rot: ${magenta?.name || 'Rot'}`,
       colorRgb: { r: 224, g: 26, b: 105 },
       spoon: formatVolumeWithSpoonEstimate(recipe.ingredients.magentaGrams),
       percent: `${recipe.ingredients.magentaPercent}%`

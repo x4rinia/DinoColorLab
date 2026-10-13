@@ -209,7 +209,7 @@ export const PrintRecipeView: React.FC<PrintRecipeViewProps> = ({
                 <tr>
                   <td className="p-3 font-medium text-slate-800 flex items-center gap-2">
                     <span className="w-3 h-3 rounded-full inline-block shadow-sm" style={{ backgroundColor: '#e01a69' }} />
-                    <span>Pinkstichiges Rot (Kühles Rot/Magenta)</span>
+                    <span>Rot</span>
                   </td>
                   <td className="p-3 text-right font-bold text-rose-700">
                     {formatVolumeWithSpoonEstimate(currentIngredients.magentaGrams)}

@@ -123,7 +123,7 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
       ``,
       `Zutaten (Löffelmaße):`,
       `• Blau: ${blueTsp.teaspoonDisplay} (${ingredients.cyanPercent}%)`,
-      `• Pinkstichiges Rot: ${redPinkTsp.teaspoonDisplay} (${ingredients.magentaPercent}%)`,
+      `• Rot: ${redPinkTsp.teaspoonDisplay} (${ingredients.magentaPercent}%)`,
       `• Gelb: ${yellowTsp.teaspoonDisplay} (${ingredients.yellowPercent}%)`,
       `• Weiße Spülung: ${condTsp.teaspoonDisplay} (${ingredients.conditionerPercent}%)`,
       ``,
@@ -294,7 +294,7 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
             <div
               className="h-full transition-all"
               style={{ width: `${ingredients.magentaPercent}%`, backgroundColor: '#e01a69' }}
-              title={`Pinkstichiges Rot: ${redPinkTsp.teaspoonDisplay}`}
+              title={`Rot: ${redPinkTsp.teaspoonDisplay}`}
             />
           )}
           {ingredients.yellowGrams > 0 && (
@@ -389,11 +389,11 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
               </td>
             </tr>
 
-            {/* Pinkstichiges Rot */}
+            {/* Rot */}
             <tr className={ingredients.magentaPercent === 0 ? 'opacity-40' : ''}>
               <td className="p-3 font-semibold flex items-center gap-2">
                 <span className="w-3.5 h-3.5 rounded-full shadow-sm shrink-0" style={{ backgroundColor: '#e01a69' }} />
-                <span className="text-rose-300">Pinkstichiges Rot</span>
+                <span className="text-rose-300">Rot</span>
               </td>
               <td className="p-3 text-right font-bold text-white">
                 {redPinkTsp.teaspoonDisplay}

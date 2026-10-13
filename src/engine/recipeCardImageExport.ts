@@ -150,9 +150,9 @@ export function downloadRecipeCardAsPng(data: RecipeCardExportData): void {
   ctx.fillText('Anteil', 680, tableY + 23);
 
   const rows = [
-    { name: 'Blau (Echtes Blau Direct Dye)', color: '#2563eb', tsp: data.blueTsp, pct: data.bluePercent },
-    { name: 'Pinkstichiges Rot (Kühles Rot/Magenta)', color: '#e01a69', tsp: data.redPinkTsp, pct: data.redPinkPercent },
-    { name: 'Gelb (Leuchtendes Gelb)', color: '#facc15', tsp: data.yellowTsp, pct: data.yellowPercent },
+    { name: 'Blau', color: '#2563eb', tsp: data.blueTsp, pct: data.bluePercent },
+    { name: 'Rot', color: '#e01a69', tsp: data.redPinkTsp, pct: data.redPinkPercent },
+    { name: 'Gelb', color: '#facc15', tsp: data.yellowTsp, pct: data.yellowPercent },
     { name: 'Weiße Spülung (#FFFFFF)', color: '#ffffff', tsp: data.conditionerTsp, pct: data.conditionerPercent }
   ];
 

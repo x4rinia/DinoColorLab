@@ -18,7 +18,7 @@ export const INITIAL_PIGMENTS: PigmentProfile[] = [
   },
   {
     id: 2,
-    name: 'Demo Pinkstichiges Rot (Beispiel)',
+    name: 'Demo Rot (Beispiel)',
     brand: 'Dino Lab Demos',
     colorGroup: 'magenta',
     referenceHex: '#e01a69',

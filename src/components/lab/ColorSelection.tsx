@@ -35,7 +35,7 @@ export const COLOR_STYLES: StyleConfig[] = [
     desc: 'Leuchtende Knallfarben mit etwas Spülung zum Strecken & Pflegen',
     presets: [
       { name: 'Echtes Blau', hex: '#1d4ed8' },
-      { name: 'Pinkstichiges Rot', hex: '#e01a69' },
+      { name: 'Rot', hex: '#e01a69' },
       { name: 'Sonnengelb', hex: '#facc15' },
       { name: 'Smaragdgrün', hex: '#10b981' },
       { name: 'Purpurviolett', hex: '#7e22ce' },
@@ -291,13 +291,13 @@ export const ColorSelection: React.FC<ColorSelectionProps> = ({
           <div className="space-y-2.5 pt-2 border-t border-slate-800">
             <div>
               <label className="text-xs font-semibold text-slate-300">
-                Farbregler (Pinkstichiges Rot, Gelb, Blau)
+                Farbregler (Rot, Gelb, Blau)
               </label>
             </div>
 
             <div className="space-y-2">
               <div className="flex items-center gap-3">
-                <span className="text-xs font-bold text-rose-400 w-28 shrink-0" title="Kühles, pinkstichiges Rot (Magenta)">Pinkstichiges Rot</span>
+                <span className="text-xs font-bold text-rose-400 w-28 shrink-0">Rot</span>
                 <input
                   type="range"
                   min="0"

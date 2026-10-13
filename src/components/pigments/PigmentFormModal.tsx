@@ -117,7 +117,7 @@ export const PigmentFormModal: React.FC<PigmentFormModalProps> = ({
                 className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500"
               >
                 <option value="cyan">Blau (echtes kräftiges Blau, kein Türkis)</option>
-                <option value="magenta">Pinkstichiges Rot (kühles Kaltrot für Violett & Pink)</option>
+                <option value="magenta">Rot (kühles Kaltrot für Violett & Pink)</option>
                 <option value="yellow">Gelb (klares leuchtendes Gelb)</option>
               </select>
             </div>

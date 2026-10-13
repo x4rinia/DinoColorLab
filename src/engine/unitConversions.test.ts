@@ -128,6 +128,6 @@ describe('Unit Conversions & Measurement Engine', () => {
 
   it('calculates a simple understandable mixing ratio', () => {
     const ratio = calculateSimpleRatio(0.5, 0.5, 0.0, 4.0);
-    expect(ratio).toBe('1 Teil Blau + 1 Teil Pinkstichiges Rot + 8 Teile Weiße Spülung');
+    expect(ratio).toBe('1 Teil Blau + 1 Teil Rot + 8 Teile Weiße Spülung');
   });
 });
