@@ -181,7 +181,7 @@ export function downloadRecipeAsPdf(
     },
     {
       name: `Rot: ${magenta?.name || 'Rot'}`,
-      colorRgb: { r: 224, g: 26, b: 105 },
+      colorRgb: { r: 215, g: 29, b: 119 },
       spoon: formatVolumeWithSpoonEstimate(recipe.ingredients.magentaGrams),
       percent: `${recipe.ingredients.magentaPercent}%`
     },

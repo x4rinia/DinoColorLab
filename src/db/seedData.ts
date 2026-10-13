@@ -21,7 +21,7 @@ export const INITIAL_PIGMENTS: PigmentProfile[] = [
     name: 'Demo Rot (Beispiel)',
     brand: 'Dino Lab Demos',
     colorGroup: 'magenta',
-    referenceHex: '#e01a69',
+    referenceHex: '#D71D77',
     intensity: 1.0,
     densityGPerMl: 1.01,
     concentrationData: 'Demonstration Pigment.',
@@ -66,8 +66,8 @@ export const INITIAL_SETTINGS: AppSettings = {
   disclaimerAccepted: false,
   defaultBatchGrams: 5,
   roundingPrecision: 0.1,
-  recentColors: ['#3b82f6', '#e01a69', '#ffd600', '#8b5cf6', '#10b981'],
-  favoriteColors: ['#3b82f6', '#e01a69', '#8b5cf6']
+  recentColors: ['#3b82f6', '#D71D77', '#ffd600', '#8b5cf6', '#10b981'],
+  favoriteColors: ['#3b82f6', '#D71D77', '#8b5cf6']
 };
 
 export const INITIAL_RECIPES: ColorRecipe[] = [];

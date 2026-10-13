@@ -30,7 +30,7 @@ export const PigmenteTab: React.FC<PigmenteTabProps> = () => {
     {
       id: 'red_pink',
       name: 'Rot (Kühles Rot Direct Dye)',
-      colorHex: '#e01a69',
+      colorHex: '#D71D77',
       role: 'Kühles Rot / Magenta',
       why: 'Unverzichtbar für leuchtende Pink-, Violett-, Flieder- und Beerentöne. Kühles Rot mischt mit Blau klares Violett, während warmes Orangerot schmutzig-braun werden würde.',
       brands: [

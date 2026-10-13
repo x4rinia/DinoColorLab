@@ -14,7 +14,7 @@ export const COLOR_GROUP_DESCRIPTIONS: Record<ColorGroup, string> = {
 
 export const COLOR_GROUP_DEFAULT_HEX: Record<ColorGroup, string> = {
   cyan: '#2563eb', // Echtes, kräftiges Blau (nicht türkis)
-  magenta: '#e01a69', // Kühles pinkstichiges Rot
+  magenta: '#D71D77', // Kühles Rot
   yellow: '#ffd600' // Klares leuchtendes Gelb
 };
 

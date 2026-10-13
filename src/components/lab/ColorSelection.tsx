@@ -35,7 +35,7 @@ export const COLOR_STYLES: StyleConfig[] = [
     desc: 'Leuchtende Knallfarben mit etwas Spülung zum Strecken & Pflegen',
     presets: [
       { name: 'Echtes Blau', hex: '#1d4ed8' },
-      { name: 'Rot', hex: '#e01a69' },
+      { name: 'Rot', hex: '#D71D77' },
       { name: 'Sonnengelb', hex: '#facc15' },
       { name: 'Smaragdgrün', hex: '#10b981' },
       { name: 'Purpurviolett', hex: '#7e22ce' },
@@ -295,44 +295,47 @@ export const ColorSelection: React.FC<ColorSelectionProps> = ({
               </label>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               <div className="flex items-center gap-3">
-                <span className="text-xs font-bold text-rose-400 w-28 shrink-0">Rot</span>
+                <span className="text-xs font-bold w-12 shrink-0" style={{ color: '#D71D77' }}>Rot</span>
                 <input
                   type="range"
                   min="0"
                   max="100"
                   value={pigmentPercent.r}
                   onChange={(e) => handlePigmentChange('r', parseInt(e.target.value))}
-                  className="w-full accent-rose-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+                  style={{ accentColor: '#D71D77' }}
+                  className="w-full h-2 bg-slate-800 rounded-lg cursor-pointer"
                 />
-                <span className="w-10 text-right font-mono text-xs text-rose-300">{pigmentPercent.r}%</span>
+                <span className="w-10 text-right font-mono text-xs font-semibold" style={{ color: '#D71D77' }}>{pigmentPercent.r}%</span>
               </div>
 
               <div className="flex items-center gap-3">
-                <span className="text-xs font-bold text-amber-400 w-12" title="Gelb (Yellow)">Gelb</span>
+                <span className="text-xs font-bold text-amber-400 w-12 shrink-0" title="Gelb (Yellow)">Gelb</span>
                 <input
                   type="range"
                   min="0"
                   max="100"
                   value={pigmentPercent.g}
                   onChange={(e) => handlePigmentChange('g', parseInt(e.target.value))}
-                  className="w-full accent-amber-400 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+                  style={{ accentColor: '#facc15' }}
+                  className="w-full h-2 bg-slate-800 rounded-lg cursor-pointer"
                 />
-                <span className="w-10 text-right font-mono text-xs text-amber-300">{pigmentPercent.g}%</span>
+                <span className="w-10 text-right font-mono text-xs font-semibold text-amber-300">{pigmentPercent.g}%</span>
               </div>
 
               <div className="flex items-center gap-3">
-                <span className="text-xs font-bold text-blue-400 w-12" title="Blau (Cyan)">Blau</span>
+                <span className="text-xs font-bold text-blue-400 w-12 shrink-0" title="Blau (Cyan)">Blau</span>
                 <input
                   type="range"
                   min="0"
                   max="100"
                   value={pigmentPercent.b}
                   onChange={(e) => handlePigmentChange('b', parseInt(e.target.value))}
-                  className="w-full accent-blue-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+                  style={{ accentColor: '#2563eb' }}
+                  className="w-full h-2 bg-slate-800 rounded-lg cursor-pointer"
                 />
-                <span className="w-10 text-right font-mono text-xs text-blue-300">{pigmentPercent.b}%</span>
+                <span className="w-10 text-right font-mono text-xs font-semibold text-blue-300">{pigmentPercent.b}%</span>
               </div>
             </div>
           </div>

@@ -110,7 +110,7 @@ export const PigmentFormModal: React.FC<PigmentFormModalProps> = ({
                   setColorGroup(grp);
                   if (!pigment) {
                     if (grp === 'cyan') setReferenceHex('#2563eb');
-                    else if (grp === 'magenta') setReferenceHex('#e01a69');
+                    else if (grp === 'magenta') setReferenceHex('#D71D77');
                     else if (grp === 'yellow') setReferenceHex('#ffd600');
                   }
                 }}

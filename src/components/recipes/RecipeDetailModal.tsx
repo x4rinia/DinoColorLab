@@ -177,7 +177,7 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
               </tr>
               <tr>
                 <td className="p-3 flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: '#e01a69' }} />
+                  <span className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: '#D71D77' }} />
                   <span>Rot: {magenta?.name || 'Rot'}</span>
                 </td>
                 <td className="p-3 text-right font-bold text-rose-300">

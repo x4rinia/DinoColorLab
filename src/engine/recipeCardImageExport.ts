@@ -120,7 +120,7 @@ export function downloadRecipeCardAsPng(data: RecipeCardExportData): void {
   // Red-Pink segment
   if (data.redPinkPercent > 0) {
     const w = (data.redPinkPercent / 100) * barWidth;
-    ctx.fillStyle = '#e01a69';
+    ctx.fillStyle = '#D71D77';
     ctx.fillRect(currentX, barActualY, w, barH);
     currentX += w;
   }
@@ -151,7 +151,7 @@ export function downloadRecipeCardAsPng(data: RecipeCardExportData): void {
 
   const rows = [
     { name: 'Blau', color: '#2563eb', tsp: data.blueTsp, pct: data.bluePercent },
-    { name: 'Rot', color: '#e01a69', tsp: data.redPinkTsp, pct: data.redPinkPercent },
+    { name: 'Rot', color: '#D71D77', tsp: data.redPinkTsp, pct: data.redPinkPercent },
     { name: 'Gelb', color: '#facc15', tsp: data.yellowTsp, pct: data.yellowPercent },
     { name: 'Weiße Spülung (#FFFFFF)', color: '#ffffff', tsp: data.conditionerTsp, pct: data.conditionerPercent }
   ];

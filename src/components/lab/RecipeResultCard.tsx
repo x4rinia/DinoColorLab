@@ -293,7 +293,7 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
           {ingredients.magentaGrams > 0 && (
             <div
               className="h-full transition-all"
-              style={{ width: `${ingredients.magentaPercent}%`, backgroundColor: '#e01a69' }}
+              style={{ width: `${ingredients.magentaPercent}%`, backgroundColor: '#D71D77' }}
               title={`Rot: ${redPinkTsp.teaspoonDisplay}`}
             />
           )}
@@ -392,8 +392,8 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
             {/* Rot */}
             <tr className={ingredients.magentaPercent === 0 ? 'opacity-40' : ''}>
               <td className="p-3 font-semibold flex items-center gap-2">
-                <span className="w-3.5 h-3.5 rounded-full shadow-sm shrink-0" style={{ backgroundColor: '#e01a69' }} />
-                <span className="text-rose-300">Rot</span>
+                <span className="w-3.5 h-3.5 rounded-full shadow-sm shrink-0" style={{ backgroundColor: '#D71D77' }} />
+                <span style={{ color: '#D71D77' }}>Rot</span>
               </td>
               <td className="p-3 text-right font-bold text-white">
                 {redPinkTsp.teaspoonDisplay}
