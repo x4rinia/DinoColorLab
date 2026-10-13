@@ -2,7 +2,8 @@ import React, { useState, useMemo } from 'react';
 import type { CalculationResult, PigmentProfile, ConditionerProfile } from '../../types';
 import {
   calculateTeaspoonAmount,
-  calculateSimpleRatio
+  calculateSimpleRatio,
+  scaleRecipeIngredients
 } from '../../engine/unitConversions';
 import { downloadRecipeCardAsPng } from '../../engine/recipeCardImageExport';
 import { downloadRecipeAsPdf } from '../../engine/pdfExport';
@@ -13,7 +14,8 @@ import {
   BookmarkPlus,
   Printer,
   Sparkles,
-  FileText
+  FileText,
+  Layers
 } from 'lucide-react';
 
 interface RecipeResultCardProps {
@@ -23,6 +25,8 @@ interface RecipeResultCardProps {
   yellowPigment: PigmentProfile;
   conditioner?: ConditionerProfile;
   mixedColorHex: string;
+  batchMultiplier?: 1 | 2;
+  onMultiplierChange?: (multiplier: 1 | 2) => void;
   onSaveRecipe: () => void;
   onPrintRecipe: () => void;
 }
@@ -34,11 +38,44 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
   yellowPigment,
   conditioner,
   mixedColorHex,
+  batchMultiplier,
+  onMultiplierChange,
   onSaveRecipe,
   onPrintRecipe
 }) => {
-  const { ingredients } = result;
+  const [internalMultiplier, setInternalMultiplier] = useState<1 | 2>(1);
+  const activeMultiplier = batchMultiplier ?? internalMultiplier;
+  const isDouble = activeMultiplier === 2;
+  const currentTotalMl = isDouble ? 80 : 40;
+
+  const handleMultiplierToggle = (newMultiplier: 1 | 2) => {
+    if (onMultiplierChange) {
+      onMultiplierChange(newMultiplier);
+    } else {
+      setInternalMultiplier(newMultiplier);
+    }
+  };
+
+  const { ingredients: rawIngredients } = result;
   const [copied, setCopied] = useState(false);
+
+  // Falls batchMultiplier nicht von außen gesteuert wird, lokal skalieren:
+  const ingredients = useMemo(() => {
+    if (batchMultiplier !== undefined) {
+      return rawIngredients;
+    }
+    if (internalMultiplier === 2 && rawIngredients.totalGrams < 60) {
+      return scaleRecipeIngredients(
+        rawIngredients,
+        80,
+        cyanPigment.densityGPerMl,
+        magentaPigment.densityGPerMl,
+        yellowPigment.densityGPerMl,
+        conditioner?.densityGPerMl
+      );
+    }
+    return rawIngredients;
+  }, [rawIngredients, batchMultiplier, internalMultiplier, cyanPigment, magentaPigment, yellowPigment, conditioner]);
 
   // Löffelmaße für die Zutaten (rein in TL/EL ohne Gramm)
   const blueTsp = calculateTeaspoonAmount(
@@ -75,19 +112,23 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
     );
   }, [ingredients]);
 
+  const portionLabel = isDouble
+    ? 'Doppelte Menge (80 ml / 2 Färbeschalen)'
+    : 'Färbeschale (40 ml / ca. 2 EL + 2 TL)';
+
   const handleCopyText = async () => {
     const text = [
-      `🦕 Dino Color Lab – Rezeptkarte (Färbeschale: 40 ml)`,
+      `🦕 Dino Color Lab – Rezeptkarte (${portionLabel})`,
       `Gemischte Farbe: ${mixedColorHex.toUpperCase()}`,
       ``,
       `Zutaten (Löffelmaße):`,
       `• Blau: ${blueTsp.teaspoonDisplay} (${ingredients.cyanPercent}%)`,
-      `• Rot-Pink: ${redPinkTsp.teaspoonDisplay} (${ingredients.magentaPercent}%)`,
+      `• Pinkstichiges Rot: ${redPinkTsp.teaspoonDisplay} (${ingredients.magentaPercent}%)`,
       `• Gelb: ${yellowTsp.teaspoonDisplay} (${ingredients.yellowPercent}%)`,
       `• Weiße Spülung: ${condTsp.teaspoonDisplay} (${ingredients.conditionerPercent}%)`,
       ``,
       `Mischverhältnis: ${simpleRatio}`,
-      `Praxishinweis: 1 EL = 15 ml | 1 TL = 5 ml | Gesamtmenge: 40 ml (ca. 2 EL + 2 TL).`
+      `Praxishinweis: 1 EL = 15 ml | 1 TL = 5 ml | Gesamtmenge: ${currentTotalMl} ml.`
     ].join('\n');
 
     try {
@@ -101,7 +142,7 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
 
   const handleDownloadPng = () => {
     downloadRecipeCardAsPng({
-      title: `Rezept_${mixedColorHex.toUpperCase()}`,
+      title: `Rezept_${mixedColorHex.toUpperCase()}${isDouble ? '_doppelte_menge' : ''}`,
       mixedColorHex,
       blueTsp: blueTsp.teaspoonDisplay,
       redPinkTsp: redPinkTsp.teaspoonDisplay,
@@ -111,25 +152,26 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
       redPinkPercent: ingredients.magentaPercent,
       yellowPercent: ingredients.yellowPercent,
       conditionerPercent: ingredients.conditionerPercent,
-      ratioText: simpleRatio
+      ratioText: simpleRatio,
+      portionText: portionLabel
     });
   };
 
   const handleDownloadPdf = () => {
     downloadRecipeAsPdf(
       {
-        title: `Mischrezeptur ${mixedColorHex.toUpperCase()}`,
-        description: 'Berechnet im Dino Color Lab Farblabor für Direktzieher.',
+        title: `Mischrezeptur ${mixedColorHex.toUpperCase()}${isDouble ? ' (Doppelte Menge)' : ''}`,
+        description: `Berechnet im Dino Color Lab Farblabor für Direktzieher (${portionLabel}).`,
         targetHex: mixedColorHex,
         cyanPigmentId: cyanPigment.id || 1,
         magentaPigmentId: magentaPigment.id || 2,
         yellowPigmentId: yellowPigment.id || 3,
         conditionerId: conditioner?.id,
-        totalBatchGrams: 40,
+        totalBatchGrams: currentTotalMl,
         ingredients,
         baseHairColor: { levelKey: 'bleached_level10', hex: '#fffbeb' },
         testStatus: 'untested',
-        tags: ['Farblabor', 'Teststrähne'],
+        tags: ['Farblabor', isDouble ? 'Doppelte Menge' : 'Standardmenge'],
         isFavorite: false,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
@@ -151,7 +193,7 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
               Mischrezeptur
             </span>
             <span className="text-xs text-slate-400">
-              Färbeschale (40 ml / ca. 2 EL + 2 TL)
+              {portionLabel}
             </span>
           </div>
           <h3 className="text-lg font-extrabold text-slate-100 m-0 mt-1">
@@ -228,7 +270,7 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
             {mixedColorHex.toUpperCase()}
           </div>
           <div className="text-xs text-slate-400">
-            Rezeptur in Löffelmaßen für die Färbeschale (40 ml)
+            Rezeptur in Löffelmaßen für {isDouble ? 'die doppelte Menge (80 ml)' : 'die Färbeschale (40 ml)'}
           </div>
         </div>
       </div>
@@ -250,9 +292,9 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
           )}
           {ingredients.magentaGrams > 0 && (
             <div
-              className="h-full bg-rose-500 transition-all"
-              style={{ width: `${ingredients.magentaPercent}%` }}
-              title={`Rot-Pink: ${redPinkTsp.teaspoonDisplay}`}
+              className="h-full transition-all"
+              style={{ width: `${ingredients.magentaPercent}%`, backgroundColor: '#e01a69' }}
+              title={`Pinkstichiges Rot: ${redPinkTsp.teaspoonDisplay}`}
             />
           )}
           {ingredients.yellowGrams > 0 && (
@@ -272,13 +314,63 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
         </div>
       </div>
 
+      {/* Mengen-Auswahl: Standard (40 ml) vs. Doppelte Menge (80 ml) */}
+      <div className="bg-slate-950/70 p-3 sm:p-3.5 rounded-2xl border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-inner">
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 shrink-0">
+            <Layers className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+              <span>Anmisch-Menge:</span>
+              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${isDouble ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : 'bg-blue-500/15 text-blue-300 border border-blue-500/20'}`}>
+                {isDouble ? '2 Färbeschalen (80 ml)' : '1 Färbeschale (40 ml)'}
+              </span>
+            </div>
+            <div className="text-[11px] text-slate-400 mt-0.5">
+              {isDouble
+                ? 'Hochgerechnet für langes, volles Haar oder ganze Färbung'
+                : 'Standardmenge für Spitzen, Strähnen oder feines/kurzes Haar'}
+            </div>
+          </div>
+        </div>
+
+        {/* Die beiden Buttons: Standard vs. Doppelte Menge */}
+        <div className="flex items-center gap-1.5 bg-slate-900/90 p-1 rounded-xl border border-slate-800 self-stretch sm:self-auto shrink-0">
+          <button
+            type="button"
+            onClick={() => handleMultiplierToggle(1)}
+            className={`flex-1 sm:flex-initial px-3.5 py-2 rounded-lg text-xs font-bold transition-all ${
+              !isDouble
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25 ring-1 ring-blue-400'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/80'
+            }`}
+          >
+            1x Standard (40 ml)
+          </button>
+          <button
+            type="button"
+            onClick={() => handleMultiplierToggle(2)}
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold transition-all ${
+              isDouble
+                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/30 ring-1 ring-indigo-400'
+                : 'bg-slate-800/90 text-blue-300 hover:text-white hover:bg-slate-800 border border-blue-500/30'
+            }`}
+            title="Doppelte Menge (80 ml) anmischen"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-blue-300" />
+            <span>2x Doppelte Menge (80 ml)</span>
+          </button>
+        </div>
+      </div>
+
       {/* Zutatenliste rein in Löffelmaßen (KEINE GRAMMANGABEN!) */}
       <div className="border border-slate-800 rounded-2xl overflow-hidden bg-slate-950/50">
         <table className="w-full text-left text-xs sm:text-sm">
           <thead className="bg-slate-800/60 text-slate-300 font-bold border-b border-slate-800">
             <tr>
               <th className="p-3">Zutat</th>
-              <th className="p-3 text-right">Löffelmaß</th>
+              <th className="p-3 text-right">Löffelmaß {isDouble ? '(für 80 ml)' : '(für 40 ml)'}</th>
               <th className="p-3 text-right">Anteil</th>
             </tr>
           </thead>
@@ -297,11 +389,11 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
               </td>
             </tr>
 
-            {/* Rot-Pink */}
+            {/* Pinkstichiges Rot */}
             <tr className={ingredients.magentaPercent === 0 ? 'opacity-40' : ''}>
               <td className="p-3 font-semibold flex items-center gap-2">
-                <span className="w-3.5 h-3.5 rounded-full bg-rose-600 shadow-sm shrink-0" />
-                <span className="text-rose-300">Rot-Pink</span>
+                <span className="w-3.5 h-3.5 rounded-full shadow-sm shrink-0" style={{ backgroundColor: '#e01a69' }} />
+                <span className="text-rose-300">Pinkstichiges Rot</span>
               </td>
               <td className="p-3 text-right font-bold text-white">
                 {redPinkTsp.teaspoonDisplay}
@@ -338,6 +430,15 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
                 {ingredients.conditionerPercent}%
               </td>
             </tr>
+
+            {/* Gesamtzeile */}
+            <tr className="bg-slate-900/90 font-bold border-t border-slate-700 text-white">
+              <td className="p-3">Portion gesamt</td>
+              <td className="p-3 text-right font-semibold text-blue-300">
+                {isDouble ? '80 ml (2 Färbeschalen)' : '40 ml (1 Färbeschale)'}
+              </td>
+              <td className="p-3 text-right font-mono">100%</td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -348,7 +449,17 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
         <p className="m-0 text-slate-400">
           • <strong>1 EL</strong> = 15 ml (großer Esslöffel) | <strong>1 TL</strong> = 5 ml (Kaffeelöffel) | <strong>½ TL</strong> = 2,5 ml
           <br />
-          • Standard-Gesamtmenge im Schälchen: <strong>40 ml</strong> (entspricht genau 2 EL + 2 TL).
+          {isDouble ? (
+            <>
+              • Aktuelle Gesamtmenge: <strong>80 ml (Doppelte Menge)</strong> – entspricht genau 2 Färbeschalen (ca. 5 EL + 1 TL).
+              <br />
+              • Alle Löffelmaße in der Tabelle sind <strong>bereits verdoppelt</strong>.
+            </>
+          ) : (
+            <>
+              • Standard-Gesamtmenge im Schälchen: <strong>40 ml</strong> (entspricht genau 2 EL + 2 TL).
+            </>
+          )}
           <br />
           • <strong>Spülung:</strong> Dient auch bei kräftigen Farben zum Strecken & für cremigen Auftrag (bei reinem Schwarz 0%).
           <br />

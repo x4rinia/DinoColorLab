@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import type { ColorRecipe, PigmentProfile, ConditionerProfile } from '../../types';
-import { X, Copy, Download, Printer, Star, Trash2, Tag, FileText } from 'lucide-react';
+import { X, Copy, Download, Printer, Star, Trash2, Tag, FileText, Layers, Sparkles } from 'lucide-react';
 import {
   formatVolumeWithSpoonEstimate,
-  formatConditionerSpoonEstimate
+  formatConditionerSpoonEstimate,
+  scaleRecipeIngredients
 } from '../../engine/unitConversions';
 import { downloadRecipeAsPdf } from '../../engine/pdfExport';
 
@@ -34,6 +35,34 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
   const magenta = pigments.find((p) => p.id === recipe.magentaPigmentId);
   const yellow = pigments.find((p) => p.id === recipe.yellowPigmentId);
   const conditioner = conditioners.find((c) => c.id === recipe.conditionerId);
+
+  const isAlreadyDouble = (recipe.totalBatchGrams || 40) >= 75;
+  const [multiplier, setMultiplier] = useState<1 | 2>(isAlreadyDouble ? 2 : 1);
+  const isDouble = multiplier === 2;
+  const targetTotal = isDouble ? 80 : 40;
+
+  const currentIngredients = useMemo(() => {
+    if (multiplier === (isAlreadyDouble ? 2 : 1)) {
+      return recipe.ingredients;
+    }
+    return scaleRecipeIngredients(
+      recipe.ingredients,
+      targetTotal,
+      cyan?.densityGPerMl,
+      magenta?.densityGPerMl,
+      yellow?.densityGPerMl,
+      conditioner?.densityGPerMl
+    );
+  }, [recipe, multiplier, isAlreadyDouble, targetTotal, cyan, magenta, yellow, conditioner]);
+
+  const activeRecipe = useMemo(() => {
+    return {
+      ...recipe,
+      title: isDouble && !recipe.title.includes('Doppelte Menge') ? `${recipe.title} (Doppelte Menge)` : recipe.title,
+      totalBatchGrams: targetTotal,
+      ingredients: currentIngredients
+    };
+  }, [recipe, isDouble, targetTotal, currentIngredients]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 overflow-y-auto">
@@ -79,12 +108,59 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
           </div>
         )}
 
+        {/* Mengen-Auswahl: Standard (40 ml) vs. Doppelte Menge (80 ml) */}
+        <div className="bg-slate-950/70 p-3 rounded-2xl border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-inner">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 shrink-0">
+              <Layers className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                <span>Anmisch-Menge:</span>
+                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${isDouble ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : 'bg-blue-500/15 text-blue-300 border border-blue-500/20'}`}>
+                  {isDouble ? '2 Färbeschalen (80 ml)' : '1 Färbeschale (40 ml)'}
+                </span>
+              </div>
+              <div className="text-[11px] text-slate-400 mt-0.5">
+                {isDouble ? 'Rezeptur für 80 ml verdoppelt' : 'Standardmenge für Färbeschale (40 ml)'}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5 bg-slate-900/90 p-1 rounded-xl border border-slate-800 self-stretch sm:self-auto shrink-0">
+            <button
+              type="button"
+              onClick={() => setMultiplier(1)}
+              className={`flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                !isDouble
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25 ring-1 ring-blue-400'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+              }`}
+            >
+              1x Standard (40 ml)
+            </button>
+            <button
+              type="button"
+              onClick={() => setMultiplier(2)}
+              className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                isDouble
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/30 ring-1 ring-indigo-400'
+                  : 'bg-slate-800/90 text-blue-300 hover:text-white hover:bg-slate-800 border border-blue-500/30'
+              }`}
+              title="Doppelte Menge (80 ml) anmischen"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-blue-300" />
+              <span>2x Doppelte Menge (80 ml)</span>
+            </button>
+          </div>
+        </div>
+
         <div className="bg-slate-950/70 border border-slate-800 rounded-2xl overflow-hidden">
           <table className="w-full text-left text-xs sm:text-sm">
             <thead className="bg-slate-800/60 text-slate-300 font-semibold border-b border-slate-800">
               <tr>
                 <th className="p-3">Zutat</th>
-                <th className="p-3 text-right">Löffelmaß</th>
+                <th className="p-3 text-right">Löffelmaß {isDouble ? '(für 80 ml)' : '(für 40 ml)'}</th>
                 <th className="p-3 text-right">Anteil</th>
               </tr>
             </thead>
@@ -95,19 +171,19 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
                   <span>Blau: {cyan?.name || 'Blau'}</span>
                 </td>
                 <td className="p-3 text-right font-bold text-blue-300">
-                  {formatVolumeWithSpoonEstimate(recipe.ingredients.cyanGrams)}
+                  {formatVolumeWithSpoonEstimate(currentIngredients.cyanGrams)}
                 </td>
-                <td className="p-3 text-right font-mono text-slate-400">{recipe.ingredients.cyanPercent}%</td>
+                <td className="p-3 text-right font-mono text-slate-400">{currentIngredients.cyanPercent}%</td>
               </tr>
               <tr>
                 <td className="p-3 flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-rose-600 shadow-sm" />
-                  <span>Rot-Pink: {magenta?.name || 'Rot-Pink'}</span>
+                  <span className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: '#e01a69' }} />
+                  <span>Pinkstichiges Rot: {magenta?.name || 'Pinkstichiges Rot'}</span>
                 </td>
                 <td className="p-3 text-right font-bold text-rose-300">
-                  {formatVolumeWithSpoonEstimate(recipe.ingredients.magentaGrams)}
+                  {formatVolumeWithSpoonEstimate(currentIngredients.magentaGrams)}
                 </td>
-                <td className="p-3 text-right font-mono text-slate-400">{recipe.ingredients.magentaPercent}%</td>
+                <td className="p-3 text-right font-mono text-slate-400">{currentIngredients.magentaPercent}%</td>
               </tr>
               <tr>
                 <td className="p-3 flex items-center gap-2">
@@ -115,9 +191,9 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
                   <span>Gelb: {yellow?.name || 'Gelb'}</span>
                 </td>
                 <td className="p-3 text-right font-bold text-amber-300">
-                  {formatVolumeWithSpoonEstimate(recipe.ingredients.yellowGrams)}
+                  {formatVolumeWithSpoonEstimate(currentIngredients.yellowGrams)}
                 </td>
-                <td className="p-3 text-right font-mono text-slate-400">{recipe.ingredients.yellowPercent}%</td>
+                <td className="p-3 text-right font-mono text-slate-400">{currentIngredients.yellowPercent}%</td>
               </tr>
               <tr>
                 <td className="p-3 flex items-center gap-2">
@@ -125,13 +201,15 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
                   <span>Weiße Spülung: {conditioner?.name || 'Weiße Spülung'}</span>
                 </td>
                 <td className="p-3 text-right font-bold text-white">
-                  {formatConditionerSpoonEstimate(recipe.ingredients.conditionerGrams)}
+                  {formatConditionerSpoonEstimate(currentIngredients.conditionerGrams)}
                 </td>
-                <td className="p-3 text-right font-mono text-slate-400">{recipe.ingredients.conditionerPercent}%</td>
+                <td className="p-3 text-right font-mono text-slate-400">{currentIngredients.conditionerPercent}%</td>
               </tr>
               <tr className="bg-slate-900 font-bold border-t border-slate-700 text-white">
                 <td className="p-3">Portion</td>
-                <td className="p-3 text-right font-semibold text-blue-300">Färbeschale (40 ml / ca. 2 EL + 2 TL)</td>
+                <td className="p-3 text-right font-semibold text-blue-300">
+                  {isDouble ? 'Doppelte Menge (80 ml / 2 Färbeschalen)' : 'Färbeschale (40 ml / ca. 2 EL + 2 TL)'}
+                </td>
                 <td className="p-3 text-right font-mono">100%</td>
               </tr>
             </tbody>
@@ -163,7 +241,7 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
             </button>
 
             <button
-              onClick={() => downloadRecipeAsPdf(recipe, pigments, conditioners)}
+              onClick={() => downloadRecipeAsPdf(activeRecipe, pigments, conditioners)}
               className="flex items-center gap-1.5 px-3.5 py-2 bg-rose-600 hover:bg-rose-500 text-xs font-semibold text-white rounded-xl shadow-md transition-all hover:scale-[1.02]"
               title="Als PDF Dokument herunterladen"
             >
@@ -172,7 +250,7 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
             </button>
 
             <button
-              onClick={() => onExportJson(recipe)}
+              onClick={() => onExportJson(activeRecipe)}
               className="flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 rounded-xl border border-slate-700"
               title="JSON-Datei für Dino Color Lab App exportieren"
             >
@@ -183,7 +261,7 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
             <button
               onClick={() => {
                 onClose();
-                onPrint(recipe);
+                onPrint(activeRecipe);
               }}
               className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 rounded-xl border border-slate-700"
               title="Druckansicht öffnen"

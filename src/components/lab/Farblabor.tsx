@@ -37,8 +37,9 @@ export const Farblabor: React.FC<FarblaborProps> = ({
   // Gewählter Nuancen-Stil: Pastell, Kräftig, Dunkel, Grau/Schwarz, Natürlich
   const [selectedStyle, setSelectedStyle] = useState<ColorStyleCategory>('kraeftig');
 
-  // Die Menge ist fest für ein Färbeschälchen wie auf dem Bild (40 ml / ca. 2 EL + 2 TL)
-  const totalBatchGrams = 40.0;
+  // Multiplikator für die Menge (1 = 40 ml Standard / 1 Schale, 2 = 80 ml Doppelte Menge / 2 Schalen)
+  const [batchMultiplier, setBatchMultiplier] = useState<1 | 2>(1);
+  const totalBatchGrams = 40.0 * batchMultiplier;
 
   // Spülungsanteil skaliert dynamisch mit der Helligkeit (bis zu 100% bei Weiß und Pastell)
   const maxConditionerRatioPercent = 100;
@@ -117,7 +118,7 @@ export const Farblabor: React.FC<FarblaborProps> = ({
       ingredients: calculationResult.ingredients,
       baseHairColor,
       testStatus: 'untested',
-      tags: [selectedStyle, 'Teststrähne'],
+      tags: [selectedStyle, batchMultiplier === 2 ? 'Doppelte Menge' : 'Standardmenge', 'Teststrähne'],
       isFavorite: false
     });
 
@@ -188,10 +189,12 @@ export const Farblabor: React.FC<FarblaborProps> = ({
             yellowPigment={yellowPigment}
             conditioner={conditioner}
             mixedColorHex={targetHex}
+            batchMultiplier={batchMultiplier}
+            onMultiplierChange={setBatchMultiplier}
             onSaveRecipe={() => setShowSaveModal(true)}
             onPrintRecipe={() =>
               onPrintRecipe({
-                title: `Rezept ${targetHex.toUpperCase()}`,
+                title: `Rezept ${targetHex.toUpperCase()}${batchMultiplier === 2 ? ' (Doppelte Menge)' : ''}`,
                 targetHex: targetHex,
                 estimatedResultHex: calculationResult.estimatedResultHex,
                 baseHairColor,

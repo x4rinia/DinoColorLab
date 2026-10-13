@@ -263,7 +263,7 @@ export const RezepteTab: React.FC<RezepteTabProps> = ({
                 {/* Ingredients summary */}
                 <div className="grid grid-cols-4 gap-1.5 text-center text-[10px] font-mono font-bold bg-slate-950/60 p-2 rounded-xl border border-slate-800 mb-3">
                   <div className="text-blue-300">Blau: {recipe.ingredients.cyanPercent}%</div>
-                  <div className="text-rose-300">Rot: {recipe.ingredients.magentaPercent}%</div>
+                  <div className="text-rose-300">Rot-Pink: {recipe.ingredients.magentaPercent}%</div>
                   <div className="text-amber-300">Gelb: {recipe.ingredients.yellowPercent}%</div>
                   <div className="text-white">Sp: {recipe.ingredients.conditionerPercent}%</div>
                 </div>

@@ -29,8 +29,8 @@ export const PigmenteTab: React.FC<PigmenteTabProps> = () => {
     },
     {
       id: 'red_pink',
-      name: 'Kühles Rot-Pink (Direct Dye)',
-      colorHex: '#e11d48',
+      name: 'Pinkstichiges Rot (Kühles Rot-Pink Direct Dye)',
+      colorHex: '#e01a69',
       role: 'Pinkstichiges Kaltrot / Magenta',
       why: 'Unverzichtbar für leuchtende Pink-, Violett-, Flieder- und Beerentöne. Kühles Rot mischt mit Blau klares Violett, während warmes Orangerot schmutzig-braun werden würde.',
       brands: [
@@ -39,7 +39,7 @@ export const PigmenteTab: React.FC<PigmenteTabProps> = () => {
         'Arctic Fox: Virgin Pink',
         'I Heart Revolution: Pink Universe'
       ],
-      tip: 'Ein kühles Rot mit leichtem Pinkstich ist der Universalschlüssel für klare Mischfarben.'
+      tip: 'Ein kühles Rot mit deutlichem Pinkstich ist der Universalschlüssel für klare Mischfarben.'
     },
     {
       id: 'yellow',

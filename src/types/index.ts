@@ -2,19 +2,19 @@ export type ColorGroup = 'cyan' | 'magenta' | 'yellow';
 
 export const COLOR_GROUP_NAMES: Record<ColorGroup, string> = {
   cyan: 'Blau',
-  magenta: 'Rot-Pink',
+  magenta: 'Pinkstichiges Rot',
   yellow: 'Gelb'
 };
 
 export const COLOR_GROUP_DESCRIPTIONS: Record<ColorGroup, string> = {
   cyan: 'Blau (echtes kräftiges Blau, nicht türkis)',
-  magenta: 'Rot-Pink (kühles, pinkstichiges Rot für kräftige Violetttöne)',
+  magenta: 'Pinkstichiges Rot (kühles Kaltrot für kräftige Violett- und Pinktöne)',
   yellow: 'Gelb (klares, leuchtendes Gelb)'
 };
 
 export const COLOR_GROUP_DEFAULT_HEX: Record<ColorGroup, string> = {
   cyan: '#2563eb', // Echtes, kräftiges Blau (nicht türkis)
-  magenta: '#e11d48', // Kühles pinkstichiges Rot
+  magenta: '#e01a69', // Kühles pinkstichiges Rot
   yellow: '#ffd600' // Klares leuchtendes Gelb
 };
 

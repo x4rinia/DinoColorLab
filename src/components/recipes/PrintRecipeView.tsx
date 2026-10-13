@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import type { ColorRecipe, PigmentProfile, ConditionerProfile } from '../../types';
-import { Printer, Plus, Equal, FileText } from 'lucide-react';
+import { Printer, Plus, Equal, FileText, Sparkles } from 'lucide-react';
 import {
   formatVolumeWithSpoonEstimate,
   formatConditionerSpoonEstimate,
-  calculateSimpleRatio
+  calculateSimpleRatio,
+  scaleRecipeIngredients
 } from '../../engine/unitConversions';
 import { downloadRecipeAsPdf } from '../../engine/pdfExport';
 
@@ -27,11 +28,43 @@ export const PrintRecipeView: React.FC<PrintRecipeViewProps> = ({
     window.print();
   };
 
+  const isAlreadyDouble = (recipe.totalBatchGrams || 40) >= 75;
+  const [multiplier, setMultiplier] = useState<1 | 2>(isAlreadyDouble ? 2 : 1);
+  const isDouble = multiplier === 2;
+  const targetTotal = isDouble ? 80 : 40;
+
+  const currentIngredients = useMemo(() => {
+    if (multiplier === (isAlreadyDouble ? 2 : 1)) {
+      return recipe.ingredients;
+    }
+    const cyan = pigments.find((p) => p.id === recipe.cyanPigmentId);
+    const magenta = pigments.find((p) => p.id === recipe.magentaPigmentId);
+    const yellow = pigments.find((p) => p.id === recipe.yellowPigmentId);
+    const conditioner = conditioners.find((c) => c.id === recipe.conditionerId);
+    return scaleRecipeIngredients(
+      recipe.ingredients,
+      targetTotal,
+      cyan?.densityGPerMl,
+      magenta?.densityGPerMl,
+      yellow?.densityGPerMl,
+      conditioner?.densityGPerMl
+    );
+  }, [recipe, multiplier, isAlreadyDouble, targetTotal, pigments, conditioners]);
+
+  const activeRecipe = useMemo(() => {
+    return {
+      ...recipe,
+      title: isDouble && !recipe.title.includes('Doppelte Menge') ? `${recipe.title} (Doppelte Menge)` : recipe.title,
+      totalBatchGrams: targetTotal,
+      ingredients: currentIngredients
+    };
+  }, [recipe, isDouble, targetTotal, currentIngredients]);
+
   const ratio = calculateSimpleRatio(
-    recipe.ingredients.cyanGrams,
-    recipe.ingredients.magentaGrams,
-    recipe.ingredients.yellowGrams,
-    recipe.ingredients.conditionerGrams
+    currentIngredients.cyanGrams,
+    currentIngredients.magentaGrams,
+    currentIngredients.yellowGrams,
+    currentIngredients.conditionerGrams
   );
 
   const baseHairHex = recipe.baseHairColor?.hex || '#fffbeb';
@@ -40,16 +73,38 @@ export const PrintRecipeView: React.FC<PrintRecipeViewProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 overflow-y-auto">
       <div className="bg-white text-slate-900 rounded-3xl p-8 max-w-2xl w-full shadow-2xl relative my-8 print:m-0 print:shadow-none print:w-full print:max-w-none">
-        <div className="flex items-center justify-between border-b pb-4 mb-6 print:hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b pb-4 mb-6 gap-3 print:hidden">
           <button
             onClick={onClose}
             className="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 border rounded-xl"
           >
             Schließen
           </button>
+
+          {/* Umschalter Standard vs. Doppelte Menge */}
+          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
+            <button
+              onClick={() => setMultiplier(1)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                !isDouble ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              1x Standard (40 ml)
+            </button>
+            <button
+              onClick={() => setMultiplier(2)}
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                isDouble ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>2x Doppelte Menge (80 ml)</span>
+            </button>
+          </div>
+
           <div className="flex items-center gap-2">
             <button
-              onClick={() => downloadRecipeAsPdf(recipe, pigments, conditioners)}
+              onClick={() => downloadRecipeAsPdf(activeRecipe, pigments, conditioners)}
               className="flex items-center gap-1.5 px-3.5 py-2 bg-rose-600 text-white rounded-xl text-xs font-semibold hover:bg-rose-700 shadow-md transition-all"
             >
               <FileText className="w-4 h-4" />
@@ -69,9 +124,9 @@ export const PrintRecipeView: React.FC<PrintRecipeViewProps> = ({
           <div className="flex items-center justify-between border-b border-slate-200 pb-4">
             <div>
               <div className="text-xs font-bold uppercase tracking-wider text-blue-600">Dino Color Lab 🦕</div>
-              <h1 className="text-2xl font-black text-slate-900 mt-1 m-0">{recipe.title}</h1>
+              <h1 className="text-2xl font-black text-slate-900 mt-1 m-0">{activeRecipe.title}</h1>
               <div className="text-xs text-slate-500 mt-1">
-                Erstellt am: {new Date(recipe.createdAt).toLocaleDateString('de-DE')} • Portion: Färbeschale (40 ml / ca. 2 EL + 2 TL)
+                Erstellt am: {new Date(recipe.createdAt).toLocaleDateString('de-DE')} • Portion: {isDouble ? 'Doppelte Menge (80 ml / 2 Färbeschalen)' : 'Färbeschale (40 ml / ca. 2 EL + 2 TL)'}
               </div>
             </div>
 
@@ -136,7 +191,7 @@ export const PrintRecipeView: React.FC<PrintRecipeViewProps> = ({
               <thead className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
                 <tr>
                   <th className="p-3">Zutat</th>
-                  <th className="p-3 text-right">Löffelmaß (Dosierung)</th>
+                  <th className="p-3 text-right">Löffelmaß {isDouble ? '(für 80 ml)' : '(für 40 ml)'}</th>
                   <th className="p-3 text-right">Anteil (%)</th>
                 </tr>
               </thead>
@@ -147,19 +202,19 @@ export const PrintRecipeView: React.FC<PrintRecipeViewProps> = ({
                     <span>Blau (Echtes Blau Direct Dye)</span>
                   </td>
                   <td className="p-3 text-right font-bold text-blue-700">
-                    {formatVolumeWithSpoonEstimate(recipe.ingredients.cyanGrams)}
+                    {formatVolumeWithSpoonEstimate(currentIngredients.cyanGrams)}
                   </td>
-                  <td className="p-3 text-right font-mono">{recipe.ingredients.cyanPercent}%</td>
+                  <td className="p-3 text-right font-mono">{currentIngredients.cyanPercent}%</td>
                 </tr>
                 <tr>
                   <td className="p-3 font-medium text-slate-800 flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full bg-rose-600 inline-block shadow-sm" />
-                    <span>Rot-Pink (Kühles Rot/Magenta)</span>
+                    <span className="w-3 h-3 rounded-full inline-block shadow-sm" style={{ backgroundColor: '#e01a69' }} />
+                    <span>Pinkstichiges Rot (Kühles Rot/Magenta)</span>
                   </td>
                   <td className="p-3 text-right font-bold text-rose-700">
-                    {formatVolumeWithSpoonEstimate(recipe.ingredients.magentaGrams)}
+                    {formatVolumeWithSpoonEstimate(currentIngredients.magentaGrams)}
                   </td>
-                  <td className="p-3 text-right font-mono">{recipe.ingredients.magentaPercent}%</td>
+                  <td className="p-3 text-right font-mono">{currentIngredients.magentaPercent}%</td>
                 </tr>
                 <tr>
                   <td className="p-3 font-medium text-slate-800 flex items-center gap-2">
@@ -167,9 +222,9 @@ export const PrintRecipeView: React.FC<PrintRecipeViewProps> = ({
                     <span>Gelb (Leuchtendes Gelb)</span>
                   </td>
                   <td className="p-3 text-right font-bold text-amber-700">
-                    {formatVolumeWithSpoonEstimate(recipe.ingredients.yellowGrams)}
+                    {formatVolumeWithSpoonEstimate(currentIngredients.yellowGrams)}
                   </td>
-                  <td className="p-3 text-right font-mono">{recipe.ingredients.yellowPercent}%</td>
+                  <td className="p-3 text-right font-mono">{currentIngredients.yellowPercent}%</td>
                 </tr>
                 <tr>
                   <td className="p-3 font-medium text-slate-800 flex items-center gap-2">
@@ -177,9 +232,16 @@ export const PrintRecipeView: React.FC<PrintRecipeViewProps> = ({
                     <span>Weiße Spülung (#FFFFFF)</span>
                   </td>
                   <td className="p-3 text-right font-bold text-slate-800">
-                    {formatConditionerSpoonEstimate(recipe.ingredients.conditionerGrams)}
+                    {formatConditionerSpoonEstimate(currentIngredients.conditionerGrams)}
                   </td>
-                  <td className="p-3 text-right font-mono">{recipe.ingredients.conditionerPercent}%</td>
+                  <td className="p-3 text-right font-mono">{currentIngredients.conditionerPercent}%</td>
+                </tr>
+                <tr className="bg-slate-50 font-bold border-t border-slate-300">
+                  <td className="p-3">Portion gesamt</td>
+                  <td className="p-3 text-right font-semibold text-blue-700">
+                    {isDouble ? '80 ml (2 Färbeschalen)' : '40 ml (1 Färbeschale)'}
+                  </td>
+                  <td className="p-3 text-right font-mono">100%</td>
                 </tr>
               </tbody>
             </table>
@@ -188,7 +250,12 @@ export const PrintRecipeView: React.FC<PrintRecipeViewProps> = ({
           {/* Praktische Dosier-Hinweise */}
           <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl text-xs text-slate-700 space-y-1">
             <div className="font-bold">🥄 Praxistipp zur Dosierung:</div>
-            <div>• 1 EL = 15 ml | 1 TL = 5 ml (Kaffeelöffel) | Gesamtmenge: 40 ml (2 EL + 2 TL).</div>
+            <div>
+              {isDouble
+                ? '• Gesamtmenge: 80 ml (Doppelte Menge / 2 Färbeschalen / ca. 5 EL + 1 TL).'
+                : '• Gesamtmenge: 40 ml (1 Färbeschale / ca. 2 EL + 2 TL).'}
+            </div>
+            <div>• 1 EL = 15 ml | 1 TL = 5 ml (Kaffeelöffel) | ½ TL = 2,5 ml.</div>
             <div>• Spülung: Dient auch bei kräftigen Farben zum Strecken & für Geschmeidigkeit (bei reinem Schwarz 0%).</div>
             <div>• Bei Kleinstmengen unter ¼ TL: Wenige Tropfen oder eine Messerspitze mit dem Färbepinsel hinzugeben.</div>
             <div>• Direktzieher sind semi-transparent: Immer zuerst eine kleine Teststrähne an unauffälliger Stelle machen.</div>

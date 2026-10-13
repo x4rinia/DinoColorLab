@@ -16,6 +16,7 @@ export interface RecipeCardExportData {
   yellowPercent: number;
   conditionerPercent: number;
   ratioText: string;
+  portionText?: string;
 }
 
 export function downloadRecipeCardAsPng(data: RecipeCardExportData): void {
@@ -57,7 +58,13 @@ export function downloadRecipeCardAsPng(data: RecipeCardExportData): void {
 
   ctx.fillStyle = '#94a3b8';
   ctx.font = '16px sans-serif';
-  ctx.fillText('Rezeptkarte für Färbeschale (40 ml / ca. 2 EL + 2 TL)', 50, 100);
+  ctx.fillText(
+    data.portionText
+      ? `Rezeptkarte für ${data.portionText}`
+      : 'Rezeptkarte für Färbeschale (40 ml / ca. 2 EL + 2 TL)',
+    50,
+    100
+  );
 
   // Große Farb-Vorschau der gemischten Farbe
   const swatchY = 135;
@@ -113,7 +120,7 @@ export function downloadRecipeCardAsPng(data: RecipeCardExportData): void {
   // Red-Pink segment
   if (data.redPinkPercent > 0) {
     const w = (data.redPinkPercent / 100) * barWidth;
-    ctx.fillStyle = '#e11d48';
+    ctx.fillStyle = '#e01a69';
     ctx.fillRect(currentX, barActualY, w, barH);
     currentX += w;
   }
@@ -144,7 +151,7 @@ export function downloadRecipeCardAsPng(data: RecipeCardExportData): void {
 
   const rows = [
     { name: 'Blau (Echtes Blau Direct Dye)', color: '#2563eb', tsp: data.blueTsp, pct: data.bluePercent },
-    { name: 'Rot-Pink (Kühles Rot/Magenta)', color: '#e11d48', tsp: data.redPinkTsp, pct: data.redPinkPercent },
+    { name: 'Pinkstichiges Rot (Kühles Rot/Magenta)', color: '#e01a69', tsp: data.redPinkTsp, pct: data.redPinkPercent },
     { name: 'Gelb (Leuchtendes Gelb)', color: '#facc15', tsp: data.yellowTsp, pct: data.yellowPercent },
     { name: 'Weiße Spülung (#FFFFFF)', color: '#ffffff', tsp: data.conditionerTsp, pct: data.conditionerPercent }
   ];
@@ -216,7 +223,13 @@ export function downloadRecipeCardAsPng(data: RecipeCardExportData): void {
 
   ctx.fillStyle = '#94a3b8';
   ctx.font = '12px sans-serif';
-  ctx.fillText('• 1 EL = ca. 15 ml | 1 TL = ca. 5 ml | Standardmenge Schale: 40 ml (2 EL + 2 TL).', 70, currentY + 48);
+  ctx.fillText(
+    data.portionText
+      ? `• Portion: ${data.portionText} | 1 EL = ca. 15 ml | 1 TL = ca. 5 ml.`
+      : '• 1 EL = ca. 15 ml | 1 TL = ca. 5 ml | Standardmenge Schale: 40 ml (2 EL + 2 TL).',
+    70,
+    currentY + 48
+  );
   ctx.fillText('• Vor der Gesamtanwendung immer eine Teststrähne durchführen, da die Haarfarbe durchscheint.', 70, currentY + 65);
 
   // Trigger Download

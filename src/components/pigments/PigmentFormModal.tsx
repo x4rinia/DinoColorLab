@@ -110,14 +110,14 @@ export const PigmentFormModal: React.FC<PigmentFormModalProps> = ({
                   setColorGroup(grp);
                   if (!pigment) {
                     if (grp === 'cyan') setReferenceHex('#2563eb');
-                    else if (grp === 'magenta') setReferenceHex('#e11d48');
+                    else if (grp === 'magenta') setReferenceHex('#e01a69');
                     else if (grp === 'yellow') setReferenceHex('#ffd600');
                   }
                 }}
                 className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500"
               >
                 <option value="cyan">Blau (echtes kräftiges Blau, kein Türkis)</option>
-                <option value="magenta">Rot-Pink (kühles pinkstichiges Rot für Violett)</option>
+                <option value="magenta">Pinkstichiges Rot (kühles Kaltrot für Violett & Pink)</option>
                 <option value="yellow">Gelb (klares leuchtendes Gelb)</option>
               </select>
             </div>
