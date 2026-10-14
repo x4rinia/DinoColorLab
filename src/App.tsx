@@ -38,7 +38,9 @@ export function App() {
   useEffect(() => {
     if (localSettings.theme === 'dark') {
       document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
     } else {
+      document.documentElement.classList.add('light');
       document.documentElement.classList.remove('dark');
     }
   }, [localSettings.theme]);
@@ -130,8 +132,10 @@ export function App() {
     });
   };
 
+  const isDark = (localSettings.theme ?? 'dark') === 'dark';
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans transition-colors duration-300 selection:bg-cyan-500 selection:text-slate-950">
+    <div className={`min-h-screen ${isDark ? 'bg-black text-slate-100' : 'bg-white text-slate-900'} flex flex-col font-sans transition-colors duration-200 selection:bg-cyan-500 selection:text-slate-950`}>
       <Header
         settings={localSettings}
         onUpdateSettings={handleUpdateSettings}

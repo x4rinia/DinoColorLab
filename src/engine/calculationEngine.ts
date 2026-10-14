@@ -13,7 +13,8 @@ import {
   normalizeHex,
   hexToRgb,
   BASE_HAIR_COLORS,
-  calculateResultOnHair
+  calculateResultOnHair,
+  hexToDirectDyePigments
 } from './colorMath';
 
 export interface EngineOptions {
@@ -73,58 +74,17 @@ export function calculateRecipe(
 
   const isLighterThanBase = targetBrightness > baseBrightness + 0.05;
 
-  // Chromatische Farbzerlegung für Direktzieher
-  // Blau absorbiert Rot (max - normR)
-  // Rot-Pink absorbiert Grün (max - normG)
-  // Gelb absorbiert Blau (max - normB)
-  const normR = targetRgb.r / 255;
-  const normG = targetRgb.g / 255;
-  const normB = targetRgb.b / 255;
+  // Physikalische Farbzerlegung für Direktzieher (Rot, Gelb, Blau + Spülung):
+  // Strikte 2-Primärfarben-Regel verhindert, dass die komplementäre 3. Farbe
+  // die Mischung zu Schlamm/Braun (z.B. Kräuter de Provence) kippt.
+  const dye = hexToDirectDyePigments(targetHex);
 
-  // Subtraktive Pigment-Absorption für Direktzieher (CMY):
-  // Blau (Cyan) absorbiert Rot: (1 - normR)
-  // Rot-Pink (Magenta) absorbiert Grün: (1 - normG)
-  // Gelb (Yellow) absorbiert Blau: (1 - normB)
-  const pigmentC = Math.max(0, 1 - normR);
-  const pigmentM = Math.max(0, 1 - normG);
-  const pigmentY = Math.max(0, 1 - normB);
-
-  // Exakte Synchronisation mit den Farbreglern (Ganze Prozentpunkte 0–100%):
-  // Wenn der Farbregler 0% anzeigt (oder < 0.5%), ist der Zutat-Anteil STRIKT 0%!
-  const pctC = Math.round(pigmentC * 100);
-  const pctM = Math.round(pigmentM * 100);
-  const pctY = Math.round(pigmentY * 100);
-
-  const pC = pctC === 0 ? 0 : pctC / 100;
-  const pM = pctM === 0 ? 0 : pctM / 100;
-  const pY = pctY === 0 ? 0 : pctY / 100;
-
-  const pigmentSum = pC + pM + pY;
-
-  let calcConditionerRatio = 0;
-
+  let calcConditionerRatio = dye.conditionerRatio;
+  if (maxConditionerRatio < 1.0) {
+    calcConditionerRatio = Math.min(calcConditionerRatio, maxConditionerRatio);
+  }
   if (maxConditionerRatio === 0) {
     calcConditionerRatio = 0;
-  }
-  // 1. Reines Weiß / keine Pigmente (pctSum === 0): 100% reine Spülung!
-  else if (pigmentSum === 0) {
-    calcConditionerRatio = 1.0;
-  }
-  // 2. Tiefes Schwarz: 100% Pigmentdichte, keine Spülung
-  else if (targetBrightness < 0.16 || (targetRgb.r < 30 && targetRgb.g < 30 && targetRgb.b < 30)) {
-    calcConditionerRatio = 0;
-  }
-  // 3. Pastell, mittlere und kräftige Nuancen:
-  else {
-    if (pigmentSum <= 0.90) {
-      // Pastelltöne & helle Nuancen: Spülung macht exakt den Rest bis 100% aus
-      calcConditionerRatio = Math.max(0, 1 - pigmentSum);
-    } else {
-      // Kräftige / vollgesättigte Farben: ca. 10% Streckanteil Spülung
-      const baseStretch = 0.10;
-      calcConditionerRatio = baseStretch;
-    }
-    calcConditionerRatio = Math.min(calcConditionerRatio, maxConditionerRatio);
   }
 
   const pigmentMassFraction = 1 - calcConditionerRatio;
@@ -133,18 +93,11 @@ export function calculateRecipe(
   let mFrac = 0;
   let yFrac = 0;
 
-  if (pigmentSum > 0) {
-    if (pigmentSum <= 0.90 && calcConditionerRatio === (1 - pigmentSum)) {
-      // Direkte 1:1 Übereinstimmung mit den Farbregler-Prozenten
-      cFrac = pC;
-      mFrac = pM;
-      yFrac = pY;
-    } else {
-      // Proportionale Skalierung auf die verfügbare Pigmentmasse
-      cFrac = (pC / pigmentSum) * pigmentMassFraction;
-      mFrac = (pM / pigmentSum) * pigmentMassFraction;
-      yFrac = (pY / pigmentSum) * pigmentMassFraction;
-    }
+  const totalShare = dye.rotShare + dye.gelbShare + dye.blauShare;
+  if (totalShare > 0 && pigmentMassFraction > 0) {
+    cFrac = (dye.blauShare / totalShare) * pigmentMassFraction;
+    mFrac = (dye.rotShare / totalShare) * pigmentMassFraction;
+    yFrac = (dye.gelbShare / totalShare) * pigmentMassFraction;
 
     // Falls kalibrierte Pigment-Intensitäten vorliegen:
     if (mode === 'calibrated') {
@@ -174,10 +127,10 @@ export function calculateRecipe(
   let yelG = roundVal(rawYelG);
   let condG = roundVal(rawCondG);
 
-  // Strikte 0-Garantie: Wenn Regler 0% ist, sind die Gramm zwingend 0.0g!
-  if (pC === 0) cyanG = 0;
-  if (pM === 0) magG = 0;
-  if (pY === 0) yelG = 0;
+  // Strikte 0-Garantie: Wenn die Farbe in der Zerlegung 0% hat, MUSS sie strikt 0.0g sein!
+  if (dye.blau === 0) cyanG = 0;
+  if (dye.rot === 0) magG = 0;
+  if (dye.gelb === 0) yelG = 0;
   if (calcConditionerRatio === 0) condG = 0;
 
   // Ausgleich für Rundungsdifferenzen (stets auf Spülung oder das größte aktive Pigment):
@@ -202,21 +155,24 @@ export function calculateRecipe(
   }
 
   // Rezeptur-Prozente sind eine feste Eigenschaft der Farbmischung (Rezeptverhältnis)
-  // und verändern sich nicht, wenn die Gesamtmenge skaliert oder verdoppelt wird!
-  let cP = pC === 0 ? 0 : Math.round(cFrac * 1000) / 10;
-  let mP = pM === 0 ? 0 : Math.round(mFrac * 1000) / 10;
-  let yP = pY === 0 ? 0 : Math.round(yFrac * 1000) / 10;
+  let cP = dye.blau === 0 ? 0 : Math.round(cFrac * 1000) / 10;
+  let mP = dye.rot === 0 ? 0 : Math.round(mFrac * 1000) / 10;
+  let yP = dye.gelb === 0 ? 0 : Math.round(yFrac * 1000) / 10;
   let condP = 0;
   if (calcConditionerRatio > 0) {
     condP = Math.round(Math.max(0, 100 - (cP + mP + yP)) * 10) / 10;
   } else {
     const diffP = Math.round((100 - (cP + mP + yP)) * 10) / 10;
     if (Math.abs(diffP) > 0.001) {
-      if (cP >= mP && cP >= yP) cP = Math.round((cP + diffP) * 10) / 10;
-      else if (mP >= cP && mP >= yP) mP = Math.round((mP + diffP) * 10) / 10;
-      else yP = Math.round((yP + diffP) * 10) / 10;
+      if (cP >= mP && cP >= yP && cP > 0) cP = Math.round((cP + diffP) * 10) / 10;
+      else if (mP >= cP && mP >= yP && mP > 0) mP = Math.round((mP + diffP) * 10) / 10;
+      else if (yP > 0) yP = Math.round((yP + diffP) * 10) / 10;
     }
   }
+
+  if (dye.blau === 0) cP = 0;
+  if (dye.rot === 0) mP = 0;
+  if (dye.gelb === 0) yP = 0;
 
   const cyanPercent = cP;
   const magentaPercent = mP;

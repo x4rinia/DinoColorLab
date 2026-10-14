@@ -382,7 +382,11 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
                 <span className="text-blue-300">Blau</span>
               </td>
               <td className="p-3 text-right font-bold text-white">
-                {blueTsp.teaspoonDisplay}
+                {ingredients.cyanPercent === 0 ? (
+                  <span className="text-xs font-normal text-slate-500 italic">– (Nicht nötig)</span>
+                ) : (
+                  blueTsp.teaspoonDisplay
+                )}
               </td>
               <td className="p-3 text-right font-mono text-slate-400">
                 {ingredients.cyanPercent}%
@@ -396,7 +400,11 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
                 <span style={{ color: '#D71D77' }}>Rot</span>
               </td>
               <td className="p-3 text-right font-bold text-white">
-                {redPinkTsp.teaspoonDisplay}
+                {ingredients.magentaPercent === 0 ? (
+                  <span className="text-xs font-normal text-slate-500 italic">– (Nicht nötig)</span>
+                ) : (
+                  redPinkTsp.teaspoonDisplay
+                )}
               </td>
               <td className="p-3 text-right font-mono text-slate-400">
                 {ingredients.magentaPercent}%
@@ -410,7 +418,11 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
                 <span className="text-amber-300">Gelb</span>
               </td>
               <td className="p-3 text-right font-bold text-white">
-                {yellowTsp.teaspoonDisplay}
+                {ingredients.yellowPercent === 0 ? (
+                  <span className="text-xs font-normal text-slate-500 italic">– (Nicht nötig)</span>
+                ) : (
+                  yellowTsp.teaspoonDisplay
+                )}
               </td>
               <td className="p-3 text-right font-mono text-slate-400">
                 {ingredients.yellowPercent}%
@@ -424,7 +436,11 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
                 <span className="text-slate-100">Weiße Spülung</span>
               </td>
               <td className="p-3 text-right font-bold text-white">
-                {condTsp.teaspoonDisplay}
+                {ingredients.conditionerPercent === 0 ? (
+                  <span className="text-xs font-normal text-slate-500 italic">– (Pur)</span>
+                ) : (
+                  condTsp.teaspoonDisplay
+                )}
               </td>
               <td className="p-3 text-right font-mono text-slate-400">
                 {ingredients.conditionerPercent}%
@@ -445,25 +461,19 @@ export const RecipeResultCard: React.FC<RecipeResultCardProps> = ({
 
       {/* Praktischer Anwendungstipp */}
       <div className="bg-slate-950/60 p-3 rounded-2xl border border-slate-800 text-xs text-slate-300 space-y-1">
-        <div className="font-bold text-slate-200">🥄 Praktische Dosier-Hilfe:</div>
-        <p className="m-0 text-slate-400">
-          • <strong>1 EL</strong> = 15 ml (großer Esslöffel) | <strong>1 TL</strong> = 5 ml (Kaffeelöffel) | <strong>½ TL</strong> = 2,5 ml
-          <br />
+        <div className="font-bold text-slate-200">🥄 Praktische Dosier-Hilfe & Pi-mal-Daumen-Garantie:</div>
+        <p className="m-0 text-slate-400 space-y-1">
+          <span>• <strong>1 EL</strong> = 15 ml (großer Esslöffel) | <strong>1 TL</strong> = 5 ml (Kaffeelöffel) | <strong>½ TL</strong> = 2,5 ml</span><br />
           {isDouble ? (
             <>
-              • Aktuelle Gesamtmenge: <strong>80 ml (Doppelte Menge)</strong>.
-              <br />
-              • Alle Löffelmaße in der Tabelle sind <strong>bereits verdoppelt</strong> (die Prozentanteile der Rezeptur bleiben exakt gleich).
+              <span>• Aktuelle Gesamtmenge: <strong>80 ml (Doppelte Menge)</strong> – alle Löffelmaße sind bereits verdoppelt.</span><br />
             </>
           ) : (
             <>
-              • Standard-Gesamtmenge: <strong>40 ml</strong> (ca. 2 EL + 2 TL).
+              <span>• Standard-Gesamtmenge: <strong>40 ml</strong> (ca. 2 EL + 2 TL).</span><br />
             </>
           )}
-          <br />
-          • <strong>Spülung:</strong> Dient auch bei kräftigen Farben zum Strecken & für cremigen Auftrag (bei reinem Schwarz 0%).
-          <br />
-          • Bei Kleinstmengen unter ¼ TL: Nur wenige Tropfen oder eine Messerspitze mit dem Pinsel zugeben.
+          <span>• <strong>Geling-Garantie:</strong> Bei reinen Farbtönen (z. B. Orange, Lila oder Grün) wird die komplementäre 3. Grundfarbe bewusst weggelassen (0%). Dadurch bleibt die Farbe selbst bei ungenauem Löffelmaß ("pi mal Daumen") immer strahlend und kippt niemals zu Schlamm oder Braun!</span>
         </p>
       </div>
     </div>

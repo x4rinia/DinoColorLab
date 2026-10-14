@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { hexToCmy, cmyToHex } from '../../engine/colorMath';
+import { hexToDirectDyePigments, directDyePigmentsToHex } from '../../engine/colorMath';
 import { ImageColorPicker } from '../common/ImageColorPicker';
 import { Pipette, Sparkles } from 'lucide-react';
 
@@ -97,11 +97,11 @@ export const ColorSelection: React.FC<ColorSelectionProps> = ({
   onSelectStyle
 }) => {
   const [showImagePicker, setShowImagePicker] = useState(false);
-  const cmy = hexToCmy(targetHex);
+  const dye = hexToDirectDyePigments(targetHex);
   const pigmentPercent = {
-    r: Math.round(cmy.m * 100), // Pinkstichiges Rot (Magenta)
-    g: Math.round(cmy.y * 100), // Gelb (Yellow)
-    b: Math.round(cmy.c * 100)  // Blau (Cyan)
+    r: dye.rot,
+    g: dye.gelb,
+    b: dye.blau
   };
 
   const activeStyleConfig = COLOR_STYLES.find((s) => s.id === selectedStyle) || COLOR_STYLES[0];
@@ -116,14 +116,13 @@ export const ColorSelection: React.FC<ColorSelectionProps> = ({
   };
 
   const handlePigmentChange = (channel: 'r' | 'g' | 'b', percent: number) => {
-    const norm = Math.max(0, Math.min(100, percent)) / 100;
-    let newC = cmy.c;
-    let newM = cmy.m;
-    let newY = cmy.y;
-    if (channel === 'r') newM = norm;
-    if (channel === 'g') newY = norm;
-    if (channel === 'b') newC = norm;
-    onChangeColor(cmyToHex(newC, newM, newY));
+    let newRot = pigmentPercent.r;
+    let newGelb = pigmentPercent.g;
+    let newBlau = pigmentPercent.b;
+    if (channel === 'r') newRot = percent;
+    if (channel === 'g') newGelb = percent;
+    if (channel === 'b') newBlau = percent;
+    onChangeColor(directDyePigmentsToHex(newRot, newGelb, newBlau));
   };
 
   const handleNativeEyeDropper = async () => {

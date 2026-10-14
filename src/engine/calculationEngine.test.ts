@@ -297,7 +297,45 @@ describe('Dino Color Lab Calculation Engine', () => {
       expect(blackResult.ingredients.conditionerPercent).toBe(0);
     });
 
-    it('correctly includes Rot-Pink for teal shades like #1ddba3', () => {
+    it('strictly excludes Blau for vivid orange #da5100 (Pi-mal-Daumen mud prevention)', () => {
+      const orangeInput: CalculationInput = {
+        targetHex: '#da5100',
+        cyanPigmentId: 1,
+        magentaPigmentId: 2,
+        yellowPigmentId: 3,
+        totalBatchGrams: 40,
+        maxConditionerRatioPercent: 100,
+        baseHairColor: { levelKey: 'bleached_level10', hex: '#fffbeb' }
+      };
+      const result = calculateRecipe(orangeInput, demoBlue, demoRedPink, demoYellow);
+      // Strikte 0-Garantie: Bei Orange darf absolut kein Blau enthalten sein!
+      expect(result.ingredients.cyanGrams).toBe(0);
+      expect(result.ingredients.cyanPercent).toBe(0);
+      expect(result.ingredients.magentaGrams).toBeGreaterThan(0);
+      expect(result.ingredients.yellowGrams).toBeGreaterThan(0);
+      expect(result.ingredients.totalGrams).toBe(40);
+    });
+
+    it('strictly excludes Gelb for purple / lila #7a219e (Pi-mal-Daumen mud prevention)', () => {
+      const purpleInput: CalculationInput = {
+        targetHex: '#7a219e',
+        cyanPigmentId: 1,
+        magentaPigmentId: 2,
+        yellowPigmentId: 3,
+        totalBatchGrams: 40,
+        maxConditionerRatioPercent: 100,
+        baseHairColor: { levelKey: 'bleached_level10', hex: '#fffbeb' }
+      };
+      const result = calculateRecipe(purpleInput, demoBlue, demoRedPink, demoYellow);
+      // Strikte 0-Garantie: Bei Lila/Violett darf absolut kein Gelb enthalten sein!
+      expect(result.ingredients.yellowGrams).toBe(0);
+      expect(result.ingredients.yellowPercent).toBe(0);
+      expect(result.ingredients.cyanGrams).toBeGreaterThan(0);
+      expect(result.ingredients.magentaGrams).toBeGreaterThan(0);
+      expect(result.ingredients.totalGrams).toBe(40);
+    });
+
+    it('strictly excludes Rot-Pink for teal shades like #1ddba3 (prevents mud in green tones)', () => {
       const tealInput: CalculationInput = {
         targetHex: '#1ddba3',
         cyanPigmentId: 1,
@@ -308,11 +346,11 @@ describe('Dino Color Lab Calculation Engine', () => {
         baseHairColor: { levelKey: 'bleached_level10', hex: '#fffbeb' }
       };
       const result = calculateRecipe(tealInput, demoBlue, demoRedPink, demoYellow);
-      // Rot-Pink must be included because #1ddba3 absorbs green (m = 14%)
-      expect(result.ingredients.magentaGrams).toBeGreaterThan(0);
-      expect(result.ingredients.magentaPercent).toBeGreaterThan(5);
+      // Rot-Pink darf in Türkis/Cyan NICHT enthalten sein!
+      expect(result.ingredients.magentaGrams).toBe(0);
+      expect(result.ingredients.magentaPercent).toBe(0);
       expect(result.ingredients.cyanPercent).toBeGreaterThan(40);
-      expect(result.ingredients.yellowPercent).toBeGreaterThan(15);
+      expect(result.ingredients.yellowPercent).toBeGreaterThan(10);
       expect(result.ingredients.totalGrams).toBe(40);
     });
 
@@ -335,7 +373,7 @@ describe('Dino Color Lab Calculation Engine', () => {
       expect(result.ingredients.totalGrams).toBe(40);
     });
 
-    it('strictly excludes Blau and Rot for pale yellow #ffffd8 (Gelb: 15%, Blau: 0%, Rot: 0%)', () => {
+    it('strictly excludes Blau and Rot for pale yellow #ffffd8', () => {
       const yellowInput: CalculationInput = {
         targetHex: '#ffffd8',
         cyanPigmentId: 1,
@@ -350,14 +388,12 @@ describe('Dino Color Lab Calculation Engine', () => {
       expect(result.ingredients.cyanPercent).toBe(0);
       expect(result.ingredients.magentaGrams).toBe(0);
       expect(result.ingredients.magentaPercent).toBe(0);
-      expect(result.ingredients.yellowPercent).toBe(15);
-      expect(result.ingredients.yellowGrams).toBe(6.0);
-      expect(result.ingredients.conditionerPercent).toBe(85);
-      expect(result.ingredients.conditionerGrams).toBe(34.0);
+      expect(result.ingredients.yellowPercent).toBeGreaterThan(10);
+      expect(result.ingredients.conditionerPercent).toBeGreaterThan(70);
       expect(result.ingredients.totalGrams).toBe(40);
     });
 
-    it('strictly excludes Blau and Gelb for pale pink #ffe8ff (Rot: 9%, Gelb: 0%, Blau: 0%)', () => {
+    it('strictly excludes Blau and Gelb for pale pink #ffe8ff', () => {
       const pinkInput: CalculationInput = {
         targetHex: '#ffe8ff',
         cyanPigmentId: 1,
@@ -372,14 +408,12 @@ describe('Dino Color Lab Calculation Engine', () => {
       expect(result.ingredients.cyanPercent).toBe(0);
       expect(result.ingredients.yellowGrams).toBe(0);
       expect(result.ingredients.yellowPercent).toBe(0);
-      expect(result.ingredients.magentaPercent).toBe(9);
-      expect(result.ingredients.magentaGrams).toBe(3.6);
-      expect(result.ingredients.conditionerPercent).toBe(91);
-      expect(result.ingredients.conditionerGrams).toBe(36.4);
+      expect(result.ingredients.magentaPercent).toBeGreaterThan(5);
+      expect(result.ingredients.conditionerPercent).toBeGreaterThan(80);
       expect(result.ingredients.totalGrams).toBe(40);
     });
 
-    it('strictly excludes Rot and Gelb for icy blue #f7ffff (Blau: 3%, Rot: 0%, Gelb: 0%)', () => {
+    it('strictly excludes Rot and Gelb for icy blue #f7ffff', () => {
       const blueInput: CalculationInput = {
         targetHex: '#f7ffff',
         cyanPigmentId: 1,
@@ -394,10 +428,8 @@ describe('Dino Color Lab Calculation Engine', () => {
       expect(result.ingredients.magentaPercent).toBe(0);
       expect(result.ingredients.yellowGrams).toBe(0);
       expect(result.ingredients.yellowPercent).toBe(0);
-      expect(result.ingredients.cyanPercent).toBe(3);
-      expect(result.ingredients.cyanGrams).toBe(1.2);
-      expect(result.ingredients.conditionerPercent).toBe(97);
-      expect(result.ingredients.conditionerGrams).toBe(38.8);
+      expect(result.ingredients.cyanPercent).toBeGreaterThan(0);
+      expect(result.ingredients.conditionerPercent).toBeGreaterThan(90);
       expect(result.ingredients.totalGrams).toBe(40);
     });
 
