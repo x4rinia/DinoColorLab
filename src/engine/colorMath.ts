@@ -161,21 +161,24 @@ export function hslToRgb(h: number, s: number, l: number): RGBColor {
 }
 
 export interface DirectDyeDecomposition {
-  rot: number; // 0 - 100%
+  rot: number; // 0 - 100% (Anteil unter den Farbpigmenten)
   gelb: number; // 0 - 100%
   blau: number; // 0 - 100%
+  spuelung: number; // 0 - 100% (Verdünnung / Aufhellung)
   rotShare: number; // 0.0 - 1.0
   gelbShare: number; // 0.0 - 1.0
   blauShare: number; // 0.0 - 1.0
   conditionerRatio: number; // 0.0 - 1.0
+  lightness: number; // 0.0 - 1.0
 }
 
 /**
  * Physikalische Zerlegung einer Wunschfarbe in Direktzieher-Primärpigmente (Rot, Gelb, Blau + Spülung).
  * Direktzieher verhalten sich nach subtraktiver Farbmischung:
- * - Orange/Rot/Kupfer: Nur Rot + Gelb (Blau = 0%!)
- * - Grün/Limette/Petrol: Nur Gelb + Blau (Rot = 0%!)
- * - Violett/Lila/Pink: Nur Blau + Rot (Gelb = 0%!)
+ * - Warmbereich (Orange/Rot/Kupfer): Nur Rot + Gelb (Blau = 0%!)
+ * - Kalt-/Grünbereich (Grün/Limette/Türkis/Petrol/Blau): Nur Gelb + Blau (Rot = 0%!)
+ *   -> Nuancierte Töne: Grünliches Blau / Petrol erhält harmonisch "einen Schuss Gelb" (ca. 5-20% Gelb zu Blau)
+ * - Violettbereich (Lila/Purpur/Pink): Nur Blau + Rot (Gelb = 0%!)
  * Die 3. Primärfarbe (Komplementärfarbe) wird STRIKT ausgeschlossen,
  * damit die Mischung selbst bei ungenauem Dosieren ("pi mal Daumen") niemals zu Schlamm/Braun kippt.
  */
@@ -189,10 +192,12 @@ export function hexToDirectDyePigments(hex: string): DirectDyeDecomposition {
       rot: 0,
       gelb: 0,
       blau: 0,
+      spuelung: 100,
       rotShare: 0,
       gelbShare: 0,
       blauShare: 0,
-      conditionerRatio: 1.0
+      conditionerRatio: 1.0,
+      lightness: 1.0
     };
   }
 
@@ -202,10 +207,12 @@ export function hexToDirectDyePigments(hex: string): DirectDyeDecomposition {
       rot: 32,
       gelb: 24,
       blau: 44,
+      spuelung: 0,
       rotShare: 0.32,
       gelbShare: 0.24,
       blauShare: 0.44,
-      conditionerRatio: 0.0
+      conditionerRatio: 0.0,
+      lightness: l
     };
   }
 
@@ -216,10 +223,12 @@ export function hexToDirectDyePigments(hex: string): DirectDyeDecomposition {
       rot: 30,
       gelb: 25,
       blau: 45,
+      spuelung: Math.round(condRatio * 100),
       rotShare: 0.30,
       gelbShare: 0.25,
       blauShare: 0.45,
-      conditionerRatio: condRatio
+      conditionerRatio: condRatio,
+      lightness: l
     };
   }
 
@@ -228,47 +237,65 @@ export function hexToDirectDyePigments(hex: string): DirectDyeDecomposition {
   let gelbShare = 0;
   let blauShare = 0;
 
-  // A) Reines Gelb: 52° bis 62°
-  if (h >= 52 && h < 62) {
-    gelbShare = 1.0;
-    rotShare = 0;
-    blauShare = 0;
-  }
-  // B) Reines Blau / Cyan / Himmelblau / Eisblau: 175° bis 240°
-  else if (h >= 175 && h < 240) {
-    blauShare = 1.0;
-    rotShare = 0;
-    gelbShare = 0;
-  }
-  // C) Reines Rot / Pink: 298° bis 360° und 0° bis 8°
-  else if (h >= 298 || h < 8) {
+  // A) Reines Rot / Pink: 298° bis 360° und 0° bis 8°
+  // BLAU UND GELB SIND STRIKT 0%!
+  if (h >= 298 || h < 8) {
     rotShare = 1.0;
     gelbShare = 0;
     blauShare = 0;
   }
-  // D) Warmbereich (Orange / Rot-Orange / Warmgelb): 8° bis 52°
-  // BLAU IST ZWINGEND 0%!
+  // B) Warmbereich (Orange / Rot-Orange / Warmgelb): 8° bis 52°
+  // BLAU IST STRIKT 0%!
   else if (h >= 8 && h < 52) {
     blauShare = 0;
     const t = (h - 8) / (52 - 8);
-    rotShare = Math.pow(1 - t, 2.0);
-    gelbShare = 1 - rotShare;
+    rotShare = Math.pow(1 - t, 1.8);
+    gelbShare = 1.0 - rotShare;
   }
-  // E) Grünbereich (Gelbgrün bis Türkis/Smaragd): 62° bis 175°
-  // ROT IST ZWINGEND 0%!
-  else if (h >= 62 && h < 175) {
+  // C) Reines Gelb: 52° bis 62°
+  // ROT UND BLAU SIND STRIKT 0%!
+  else if (h >= 52 && h < 62) {
+    gelbShare = 1.0;
     rotShare = 0;
-    const t = (h - 62) / (175 - 62);
-    blauShare = Math.pow(t, 1.25);
-    gelbShare = 1 - blauShare;
+    blauShare = 0;
   }
-  // F) Violett-/Lilabereich: 240° bis 298°
-  // GELB IST ZWINGEND 0%!
-  else {
+  // D) Violett- & Lilabereich: 235° bis 298°
+  // GELB IST STRIKT 0%!
+  else if (h >= 235 && h < 298) {
     gelbShare = 0;
-    const t = (h - 240) / (298 - 240);
+    const t = (h - 235) / (298 - 235);
     rotShare = Math.pow(t, 1.15);
-    blauShare = 1 - rotShare;
+    blauShare = 1.0 - rotShare;
+  }
+  // E) Reines Blau & Eisblau-Toner: 212° bis 235° (sowie sehr helle Eisblau-Töne ab 175° mit l > 0.88)
+  // ROT UND GELB SIND STRIKT 0%!
+  else if (h >= 212 || (h >= 175 && l > 0.88)) {
+    blauShare = 1.0;
+    rotShare = 0;
+    gelbShare = 0;
+  }
+  // F) Grün- & Petrolbereich (Gelbgrün über Smaragd & Türkis bis Petrol / grünliches Blau): 62° bis 212°
+  // ROT IST STRIKT 0%!
+  else {
+    rotShare = 0;
+    if (h < 165) {
+      // Reines Gelbgrün bis Smaragd
+      const t = (h - 62) / (165 - 62);
+      blauShare = Math.pow(t, 1.25) * 0.70;
+      gelbShare = 1.0 - blauShare;
+    } else {
+      // 165° bis 212°: Türkis über grünliches Blau / Petrol
+      // Ermöglicht den perfekten "Schuss Gelb" (ca. 5% bis 25% Gelb) für nuanciertes Petrol & Meerblau
+      const t = (h - 165) / (212 - 165);
+      const yellowShot = 0.25 * Math.pow(1 - t, 1.4);
+      if (yellowShot < 0.03) {
+        gelbShare = 0;
+        blauShare = 1.0;
+      } else {
+        gelbShare = yellowShot;
+        blauShare = 1.0 - yellowShot;
+      }
+    }
   }
 
   const sumShare = rotShare + gelbShare + blauShare;
@@ -278,13 +305,16 @@ export function hexToDirectDyePigments(hex: string): DirectDyeDecomposition {
     blauShare /= sumShare;
   }
 
-  // Spülungsanteil (Verdünnung & Pastellisierung)
+  // Spülungsanteil (Verdünnung & Pastellisierung nach physikalischer Helligkeit):
+  // Helle Farben (Hellblau, Pastellrosa, Flieder) erhalten viel Spülung zum Aufhellen (60-95%)
+  // Mittlere Farben (Kräftig) erhalten ca. 15-30% Spülung
+  // Dunkle Farben (Dunkelblau, Weinrot, Tannengrün) erhalten 0-15% Spülung
   let conditionerRatio = 0.15;
-  if (l > 0.50) {
+  if (l >= 0.50) {
     conditionerRatio = 0.15 + ((l - 0.50) / 0.495) * 0.83;
     conditionerRatio = Math.max(0.15, Math.min(0.98, conditionerRatio));
-  } else if (l < 0.25) {
-    conditionerRatio = Math.max(0, (l / 0.25) * 0.15);
+  } else {
+    conditionerRatio = Math.max(0, (l / 0.50) * 0.15);
   }
 
   let rotPct = 0;
@@ -312,48 +342,74 @@ export function hexToDirectDyePigments(hex: string): DirectDyeDecomposition {
     rot: rotPct,
     gelb: gelbPct,
     blau: blauPct,
+    spuelung: Math.round(conditionerRatio * 100),
     rotShare,
     gelbShare,
     blauShare,
-    conditionerRatio
+    conditionerRatio,
+    lightness: l
   };
 }
 
 /**
- * Wandelt Reglerwerte (Rot, Gelb, Blau) in eine resultierende Hex-Farbe um.
+ * Wandelt Reglerwerte (Rot, Gelb, Blau + Weiße Spülung) in eine resultierende Hex-Farbe um.
+ * Unterstützt sowohl Spülungs-Prozentsätze (0-100%) als auch direkte Helligkeitswerte (0.0-1.0).
  */
 export function directDyePigmentsToHex(
   rot: number,
   gelb: number,
   blau: number,
-  baseLightness: number = 0.5
+  spuelungOrLightness: number = 20
 ): string {
   const sum = rot + gelb + blau;
   if (sum <= 0) {
     return '#ffffff';
   }
 
+  // Helligkeit berechnen:
+  let l = 0.5;
+  if (spuelungOrLightness <= 1.0) {
+    // Falls ein 0.0 - 1.0 Helligkeitswert übergeben wurde
+    l = Math.max(0.12, Math.min(0.95, spuelungOrLightness));
+  } else {
+    // Spülungs-Prozentwert (0% = tief/dunkel wie Dunkelblau, 80%+ = Hellblau/Pastell)
+    const sp = Math.max(0, Math.min(100, spuelungOrLightness));
+    if (sp <= 15) {
+      l = 0.18 + (sp / 15) * 0.22; // 0% -> 0.18, 15% -> 0.40
+    } else {
+      l = 0.40 + ((sp - 15) / 85) * 0.48; // 50% -> 0.60, 85% -> 0.80
+    }
+  }
+
   // Fall 1: Nur Rot & Gelb (Blau === 0) -> Warmes Spektrum
   if (blau === 0) {
     const t = gelb / (rot + gelb);
     let h = 8 + t * 44;
-    const rgb = hslToRgb(h, 1.0, Math.max(0.2, Math.min(0.8, baseLightness)));
+    const rgb = hslToRgb(h, 0.98, l);
     return rgbToHex(rgb.r, rgb.g, rgb.b);
   }
 
-  // Fall 2: Nur Gelb & Blau (Rot === 0) -> Grünspektrum
+  // Fall 2: Nur Gelb & Blau (Rot === 0) -> Grünspektrum bis Petrol & Echtes Blau
   if (rot === 0) {
     const t = blau / (gelb + blau);
-    const h = 62 + t * 153;
-    const rgb = hslToRgb(h, 0.95, Math.max(0.2, Math.min(0.8, baseLightness)));
+    let h = 62;
+    if (t <= 0.75) {
+      // 0 bis 75% Blau: Gelbgrün bis Türkis
+      h = 62 + (t / 0.75) * (175 - 62);
+    } else {
+      // 75% bis 100% Blau: Türkis über grünliches Blau / Petrol bis Reines Blau
+      const u = (t - 0.75) / 0.25;
+      h = 175 + u * (228 - 175);
+    }
+    const rgb = hslToRgb(h, 0.95, l);
     return rgbToHex(rgb.r, rgb.g, rgb.b);
   }
 
   // Fall 3: Nur Blau & Rot (Gelb === 0) -> Violettspektrum
   if (gelb === 0) {
     const t = rot / (blau + rot);
-    const h = 230 + t * 68;
-    const rgb = hslToRgb(h, 0.90, Math.max(0.2, Math.min(0.8, baseLightness)));
+    const h = 228 + t * (350 - 228);
+    const rgb = hslToRgb(h, 0.92, l);
     return rgbToHex(rgb.r, rgb.g, rgb.b);
   }
 
@@ -361,7 +417,7 @@ export function directDyePigmentsToHex(
   const minVal = Math.min(rot, gelb, blau);
   const maxVal = Math.max(rot, gelb, blau);
   const desat = Math.min(1.0, (minVal / maxVal) * 1.5);
-  const s = Math.max(0.05, 1.0 - desat);
+  const s = Math.max(0.05, 0.95 - desat * 0.8);
 
   let h = 0;
   if (blau <= rot && blau <= gelb) {
@@ -369,13 +425,13 @@ export function directDyePigmentsToHex(
     h = 8 + t * 44;
   } else if (rot <= gelb && rot <= blau) {
     const t = blau / (gelb + blau);
-    h = 62 + t * 153;
+    h = 62 + (t <= 0.75 ? (t / 0.75) * 113 : 113 + ((t - 0.75) / 0.25) * 53);
   } else {
     const t = rot / (blau + rot);
-    h = 230 + t * 68;
+    h = 228 + t * 122;
   }
-  const l = Math.max(0.1, Math.min(0.7, baseLightness * (1 - desat * 0.3)));
-  const rgb = hslToRgb(h, s, l);
+  const adjustedL = Math.max(0.1, Math.min(0.85, l * (1 - desat * 0.2)));
+  const rgb = hslToRgb(h, s, adjustedL);
   return rgbToHex(rgb.r, rgb.g, rgb.b);
 }
 

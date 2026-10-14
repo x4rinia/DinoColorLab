@@ -101,7 +101,8 @@ export const ColorSelection: React.FC<ColorSelectionProps> = ({
   const pigmentPercent = {
     r: dye.rot,
     g: dye.gelb,
-    b: dye.blau
+    b: dye.blau,
+    spuelung: dye.spuelung
   };
 
   const activeStyleConfig = COLOR_STYLES.find((s) => s.id === selectedStyle) || COLOR_STYLES[0];
@@ -115,14 +116,16 @@ export const ColorSelection: React.FC<ColorSelectionProps> = ({
     }
   };
 
-  const handlePigmentChange = (channel: 'r' | 'g' | 'b', percent: number) => {
+  const handlePigmentChange = (channel: 'r' | 'g' | 'b' | 'spuelung', percent: number) => {
     let newRot = pigmentPercent.r;
     let newGelb = pigmentPercent.g;
     let newBlau = pigmentPercent.b;
+    let newSpuelung = pigmentPercent.spuelung;
     if (channel === 'r') newRot = percent;
     if (channel === 'g') newGelb = percent;
     if (channel === 'b') newBlau = percent;
-    onChangeColor(directDyePigmentsToHex(newRot, newGelb, newBlau));
+    if (channel === 'spuelung') newSpuelung = percent;
+    onChangeColor(directDyePigmentsToHex(newRot, newGelb, newBlau, newSpuelung));
   };
 
   const handleNativeEyeDropper = async () => {
@@ -288,15 +291,18 @@ export const ColorSelection: React.FC<ColorSelectionProps> = ({
           </div>
 
           <div className="space-y-2.5 pt-2 border-t border-slate-800">
-            <div>
+            <div className="flex items-center justify-between">
               <label className="text-xs font-semibold text-slate-300">
-                Farbregler (Rot, Gelb, Blau)
+                Farbregler & Weiße Spülung
               </label>
+              <span className="text-[10px] text-blue-300">
+                Tipp: Schuss Gelb zu Blau = Petrol / Türkis
+              </span>
             </div>
 
             <div className="space-y-2.5">
               <div className="flex items-center gap-3">
-                <span className="text-xs font-bold w-12 shrink-0" style={{ color: '#D71D77' }}>Rot</span>
+                <span className="text-xs font-bold w-14 shrink-0" style={{ color: '#D71D77' }}>Rot</span>
                 <input
                   type="range"
                   min="0"
@@ -310,7 +316,7 @@ export const ColorSelection: React.FC<ColorSelectionProps> = ({
               </div>
 
               <div className="flex items-center gap-3">
-                <span className="text-xs font-bold text-amber-400 w-12 shrink-0" title="Gelb (Yellow)">Gelb</span>
+                <span className="text-xs font-bold text-amber-400 w-14 shrink-0" title="Gelb (Yellow)">Gelb</span>
                 <input
                   type="range"
                   min="0"
@@ -324,7 +330,7 @@ export const ColorSelection: React.FC<ColorSelectionProps> = ({
               </div>
 
               <div className="flex items-center gap-3">
-                <span className="text-xs font-bold text-blue-400 w-12 shrink-0" title="Blau (Cyan)">Blau</span>
+                <span className="text-xs font-bold text-blue-400 w-14 shrink-0" title="Blau (Cyan)">Blau</span>
                 <input
                   type="range"
                   min="0"
@@ -335,6 +341,25 @@ export const ColorSelection: React.FC<ColorSelectionProps> = ({
                   className="w-full h-2 bg-slate-800 rounded-lg cursor-pointer"
                 />
                 <span className="w-10 text-right font-mono text-xs font-semibold text-blue-300">{pigmentPercent.b}%</span>
+              </div>
+
+              <div className="flex items-center gap-3 pt-1 border-t border-slate-800/80">
+                <span className="text-xs font-bold text-sky-300 w-14 shrink-0" title="Weiße Spülung (Aufhellung / Pastell)">Spülung</span>
+                <input
+                  type="range"
+                  min="0"
+                  max="95"
+                  value={pigmentPercent.spuelung}
+                  onChange={(e) => handlePigmentChange('spuelung', parseInt(e.target.value))}
+                  style={{ accentColor: '#38bdf8' }}
+                  className="w-full h-2 bg-slate-800 rounded-lg cursor-pointer"
+                />
+                <span className="w-10 text-right font-mono text-xs font-semibold text-sky-300">{pigmentPercent.spuelung}%</span>
+              </div>
+
+              <div className="flex items-center justify-between text-[10px] text-slate-400 px-0.5 pt-0.5">
+                <span>0% = Tief / Dunkel (z.B. Dunkelblau)</span>
+                <span>80%+ = Hellblau / Pastell</span>
               </div>
             </div>
           </div>

@@ -1,7 +1,15 @@
 import { describe, it, expect } from 'vitest';
 import { calculateRecipe } from './calculationEngine';
 import type { PigmentProfile, CalculationInput } from '../types';
-import { calculateDeltaE, mixPigmentsSubtractive, hexToRgb, calculateResultOnHair, BASE_HAIR_COLORS } from './colorMath';
+import {
+  calculateDeltaE,
+  mixPigmentsSubtractive,
+  hexToRgb,
+  calculateResultOnHair,
+  BASE_HAIR_COLORS,
+  hexToDirectDyePigments,
+  directDyePigmentsToHex
+} from './colorMath';
 
 describe('Dino Color Lab Calculation Engine', () => {
   const demoBlue: PigmentProfile = {
@@ -505,6 +513,55 @@ describe('Dino Color Lab Calculation Engine', () => {
       expect(result40.ingredients.totalGrams).toBe(40);
       expect(result80.ingredients.cyanGrams).toBeCloseTo(result40.ingredients.cyanGrams * 2, 0);
       expect(result80.ingredients.magentaGrams).toBeCloseTo(result40.ingredients.magentaGrams * 2, 0);
+    });
+
+    it('clearly differentiates Hellblau and Dunkelblau via Conditioner / Spuelung', () => {
+      // Hellblau (Babyblau #93c5fd)
+      const lightBlue = hexToDirectDyePigments('#93c5fd');
+      // Dunkelblau (Mitternachtsblau #1e3a8a)
+      const darkBlue = hexToDirectDyePigments('#1e3a8a');
+
+      // Both are primarily blue
+      expect(lightBlue.blau).toBeGreaterThan(90);
+      expect(darkBlue.blau).toBe(100);
+
+      // But Hellblau has high Spuelung (dilution) whereas Dunkelblau has low Spuelung (high depth)
+      expect(lightBlue.spuelung).toBeGreaterThan(60);
+      expect(darkBlue.spuelung).toBeLessThanOrEqual(15);
+      expect(lightBlue.lightness).toBeGreaterThan(darkBlue.lightness);
+    });
+
+    it('allows a subtle Schuss Gelb into blue for nuanced Petrol / Aqua while keeping Rot strictly 0%', () => {
+      // Greenish blue / Petrol (#0891b2)
+      const petrol = hexToDirectDyePigments('#0891b2');
+
+      // Blue is dominant
+      expect(petrol.blau).toBeGreaterThan(70);
+      // Yellow has a subtle shot ("Schuss Gelb")
+      expect(petrol.gelb).toBeGreaterThan(5);
+      expect(petrol.gelb).toBeLessThan(25);
+      // Red is strictly 0% to prevent mud!
+      expect(petrol.rot).toBe(0);
+
+      // directDyePigmentsToHex produces a vibrant greenish blue / petrol
+      const mixedPetrolHex = directDyePigmentsToHex(0, 15, 85, 30);
+      const rgb = hexToRgb(mixedPetrolHex);
+      // In greenish blue, blue and green channels are high while red is very low
+      expect(rgb.b).toBeGreaterThan(rgb.r);
+      expect(rgb.g).toBeGreaterThan(rgb.r);
+    });
+
+    it('modulates lightness from Dunkelblau to Hellblau when adjusting Spuelung slider', () => {
+      const darkHex = directDyePigmentsToHex(0, 0, 100, 10); // 10% Spülung
+      const lightHex = directDyePigmentsToHex(0, 0, 100, 80); // 80% Spülung
+
+      const darkRgb = hexToRgb(darkHex);
+      const lightRgb = hexToRgb(lightHex);
+
+      const darkBrightness = (darkRgb.r + darkRgb.g + darkRgb.b) / 3;
+      const lightBrightness = (lightRgb.r + lightRgb.g + lightRgb.b) / 3;
+
+      expect(lightBrightness).toBeGreaterThan(darkBrightness + 70);
     });
   });
 });
